@@ -1,0 +1,29 @@
+.sidebar {
+    width: 72px;
+    height: 100vh;
+    background: var(--gradient-surface);
+    border-right: var(--glass-border);
+    padding: 1rem 0;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+.sidebar-item {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border-radius: 8px;
+    background: var(--glass);
+    border: var(--glass-border);
+    transition: all 0.2s;
+}
+
+.sidebar-item:hover {
+    background: var(--surface-light);
+    border-color: var(--primary);
+    transform: translateX(4px);
+}

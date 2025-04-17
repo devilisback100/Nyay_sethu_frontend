@@ -1,0 +1,46 @@
+:root {
+    /* Modern Color Palette */
+    --primary: #6366F1;
+    --primary-dark: #4F46E5;
+    --secondary: #EC4899;
+    --accent: #8B5CF6;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+
+    /* Neutral Colors */
+    --background: #F9FAFB;
+    --surface-light: #FFFFFF;
+    --surface: #F3F4F6;
+    --surface-dark: #E5E7EB;
+
+    /* Text Colors */
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-light: #FFFFFF;
+
+    /* Effects */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+    /* Border Radius */
+    --radius-sm: 0.375rem;
+    --radius: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition: all 0.2s ease;
+    --transition-slow: all 0.3s ease;
+}
+
+/* Dark Mode Variables - Can be toggled with .dark class */
+:root[data-theme="dark"] {
+    --background: #0F172A;
+    --surface: #1E293B;
+    --surface-hover: #2D3748;
+    --text-primary: #F1F5F9;
+    --text-secondary: #CBD5E1;
+    --border-color: #2D3748;
+}

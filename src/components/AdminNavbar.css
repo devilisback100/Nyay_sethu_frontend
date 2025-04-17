@@ -1,0 +1,23 @@
+.admin-navbar {
+    height: 64px;
+    background: var(--surface);
+    border-bottom: var(--glass-border);
+    backdrop-filter: blur(12px);
+    padding: 0 1.5rem;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 72px;
+    z-index: 100;
+}
+
+.admin-navbar button {
+    transition: transform 0.2s;
+    background: var(--glass);
+    border: var(--glass-border);
+}
+
+.admin-navbar button:hover {
+    transform: scale(1.05);
+    border-color: var(--primary);
+}

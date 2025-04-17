@@ -1,0 +1,77 @@
+.footer {
+    background-color: #f8f9fa;
+    padding: 2rem 0;
+    border-top: 1px solid #e9ecef;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.footer-brand {
+    margin-bottom: 1.5rem;
+}
+
+.brand-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.brand-tagline {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.social-icons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.social-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.social-icon-button:hover {
+    background-color: #dee2e6;
+}
+
+.social-icon {
+    font-size: 1.2rem;
+    color: #495057;
+}
+
+.copyright {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .footer-container {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+    }
+
+    .social-icons {
+        margin-bottom: 0;
+    }
+}

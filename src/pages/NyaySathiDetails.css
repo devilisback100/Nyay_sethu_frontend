@@ -1,0 +1,245 @@
+/* NyaySathiDetails.css */
+.nyaysathi-details {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background-color: var(--surface-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.details-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+    margin-bottom: 1.5rem;
+    border: 4px solid var(--primary);
+}
+
+.details-avatar {
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+    color: var(--text-light);
+    font-size: 3rem;
+    font-weight: bold;
+    border-radius: var(--radius-full);
+    margin-bottom: 1.5rem;
+}
+
+.nyaysathi-details h1 {
+    color: var(--text-primary);
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    word-break: break-word;
+}
+
+.nyaysathi-details p {
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    width: 100%;
+    max-width: 500px;
+}
+
+.nyaysathi-details strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.appointment-section {
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 500px;
+    padding: 1.25rem;
+    background-color: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.appointment-section h2 {
+    color: var(--text-primary);
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+}
+
+.booking-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.timing-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.timing-list li {
+    background-color: var(--surface-dark);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.booking-info a {
+    display: inline-block;
+    margin-top: 1.25rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary);
+    color: var(--text-light);
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.booking-info a:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.not-available {
+    color: var(--danger);
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.error-message {
+    width: 100%;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: var(--surface-light);
+    border-radius: var(--radius);
+    color: var(--danger);
+    box-shadow: var(--shadow);
+}
+
+/* True responsive design that adapts to viewport width */
+@media screen and (min-width: 768px) {
+    .nyaysathi-details {
+        padding: 2rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .details-image,
+    .details-avatar {
+        width: 180px;
+        height: 180px;
+    }
+
+    .details-avatar {
+        font-size: 4rem;
+    }
+
+    .nyaysathi-details h1 {
+        font-size: 2rem;
+    }
+
+    .nyaysathi-details p {
+        font-size: 1rem;
+    }
+
+    .appointment-section {
+        padding: 1.5rem;
+    }
+
+    .appointment-section h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .nyaysathi-details {
+        padding: 1rem;
+    }
+
+    .details-image,
+    .details-avatar {
+        width: 110px;
+        height: 110px;
+    }
+
+    .details-avatar {
+        font-size: 2.5rem;
+    }
+
+    .nyaysathi-details h1 {
+        font-size: 1.4rem;
+    }
+
+    .nyaysathi-details p {
+        font-size: 0.9rem;
+    }
+
+    .timing-list {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .timing-list li {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .appointment-section h2 {
+        font-size: 1.25rem;
+    }
+
+    .booking-info a {
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+}
+
+/* Dark mode adaptations */
+:root[data-theme="dark"] .nyaysathi-details {
+    background-color: var(--surface);
+}
+
+:root[data-theme="dark"] .appointment-section {
+    background-color: var(--surface-hover);
+}
+
+:root[data-theme="dark"] .timing-list li {
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+:root[data-theme="dark"] .error-message {
+    background-color: var(--surface);
+}
+
+/* Fix for iOS Safari and other mobile browsers */
+html,
+body {
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Ensure viewport meta tag is working */
+@-ms-viewport {
+    width: device-width;
+}

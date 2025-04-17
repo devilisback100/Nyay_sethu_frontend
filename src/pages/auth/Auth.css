@@ -1,0 +1,449 @@
+.auth-page {
+    min-height: calc(100vh - 64px);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    padding: 2rem;
+}
+
+.auth-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--surface-light);
+    padding: 3rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.auth-container h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text);
+}
+
+.highlight {
+    color: var(--primary);
+}
+
+.auth-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.auth-option {
+    background: var(--bg-light);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.auth-option:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+}
+
+.auth-option svg {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.auth-option h3 {
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.auth-option p {
+    color: var(--text-secondary);
+}
+
+.signin-section {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    flex-direction: column-reverse;
+        display: flex
+}
+
+.signin-form {
+    max-width: 400px;
+    margin: 1.5rem auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.signin-form input {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+}
+
+.signin-form input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(90, 40, 125, 0.1);
+}
+
+.signin-button {
+    background: var(--primary);
+    color: var(--text-light);
+    border: none;
+    padding: 1rem;
+    border-radius: var(--radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.signin-button:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* Back button styles */
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.back-button:hover {
+    color: var(--primary);
+}
+
+@media (max-width: 768px) {
+    .auth-page {
+        padding: 1rem;
+    }
+
+    .auth-container {
+        padding: 2rem;
+    }
+
+    .auth-options {
+        grid-template-columns: 1fr;
+    }
+
+    .signin-form {
+        width: 100%;
+    }
+}
+
+/* Progress bar styles */
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.progress-step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border: 2px solid var(--border);
+}
+
+.progress-step.active {
+    background: var(--primary);
+    color: var(--text-light);
+    border-color: var(--primary);
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: var(--border);
+    z-index: -1;
+}
+
+/* Signup form styles */
+.signup-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--surface-light);
+    padding: 3rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.signup-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.signup-title h2 {
+    color: var(--text);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.signup-title p {
+    color: var(--text-secondary);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    position: relative;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.input-icon {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: var(--bg-light);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(90, 40, 125, 0.1);
+    outline: none;
+}
+
+.form-group input[type="file"] {
+    padding: 0.5rem;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: var(--primary);
+    background: var(--bg-light);
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.checkbox-group .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.terms {
+    margin: 1.5rem 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.2rem;
+}
+
+.checkbox-label span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+    .signup-container {
+        padding: 2rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Category selection styles */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.category-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.category-card.selected {
+    border-color: var(--primary);
+    background: var(--bg-light);
+    box-shadow: var(--shadow-lg);
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.category-icon {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.requirements-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.requirement-tag {
+    background: var(--bg-light);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+}
+
+.document-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Navigation buttons styles */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.prev-button,
+.next-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.prev-button {
+    background: var(--bg-light);
+    color: var(--text);
+    border: 2px solid var(--border);
+}
+
+.prev-button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateX(-2px);
+}
+
+.next-button {
+    background: var(--primary);
+    color: var(--text-light);
+    border: none;
+    margin-left: auto;
+}
+
+.next-button:hover {
+    background: var(--accent);
+    transform: translateX(2px);
+    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .prev-button,
+    .next-button {
+        width: 100%;
+    }
+
+    .next-button {
+        order: -1;
+    }
+}

@@ -1,0 +1,207 @@
+/* NyaySathiList.css */
+.nyaysathi-list {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.nyaysathi-list h1 {
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    font-size: 1.75rem;
+}
+
+.nyaysathi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.nyaysathi-card {
+    background-color: var(--surface-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.nyaysathi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.nyaysathi-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+    margin-bottom: 1rem;
+    border: 3px solid var(--primary);
+}
+
+.nyaysathi-avatar {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+    color: var(--text-light);
+    font-size: 2.5rem;
+    font-weight: bold;
+    border-radius: var(--radius-full);
+    margin-bottom: 1rem;
+}
+
+.nyaysathi-card h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+    width: 100%;
+    word-break: break-word;
+}
+
+.nyaysathi-card p {
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.nyaysathi-card strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.details-button {
+    margin-top: 1rem;
+    padding: 0.65rem 1.25rem;
+    background-color: var(--primary);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 200px;
+}
+
+.details-button:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Loading state */
+.nyaysathi-list>div:first-child:not(.nyaysathi-grid) {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+/* Responsive styles */
+@media screen and (min-width: 768px) {
+    .nyaysathi-list {
+        padding: 2rem;
+    }
+
+    .nyaysathi-list h1 {
+        font-size: 2rem;
+    }
+
+    .nyaysathi-grid {
+        gap: 2rem;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .nyaysathi-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .nyaysathi-list h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .nyaysathi-card {
+        padding: 1.25rem;
+    }
+
+    .nyaysathi-image,
+    .nyaysathi-avatar {
+        width: 100px;
+        height: 100px;
+    }
+
+    .nyaysathi-avatar {
+        font-size: 2rem;
+    }
+}
+
+/* For very small screens */
+@media screen and (max-width: 350px) {
+    .nyaysathi-grid {
+        max-width: 100%;
+    }
+
+    .nyaysathi-card {
+        padding: 1rem;
+    }
+
+    .nyaysathi-image,
+    .nyaysathi-avatar {
+        width: 90px;
+        height: 90px;
+    }
+
+    .nyaysathi-avatar {
+        font-size: 1.75rem;
+    }
+
+    .nyaysathi-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .nyaysathi-card p {
+        font-size: 0.85rem;
+    }
+
+    .details-button {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Dark mode adaptations */
+:root[data-theme="dark"] .nyaysathi-card {
+    background-color: var(--surface);
+}
+
+:root[data-theme="dark"] .nyaysathi-list>div:first-child:not(.nyaysathi-grid) {
+    color: var(--text-secondary);
+}
+
+/* Add focus styles for accessibility */
+.details-button:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Fix for iOS Safari and other mobile browsers */
+@supports (-webkit-touch-callout: none) {
+    .nyaysathi-card {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
