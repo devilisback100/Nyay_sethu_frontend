@@ -24,3 +24,4 @@ yarn-error.log*
 nyay_sathi_backend/.env
 nyay_sathi_backend/myenv
 __pycache___
+.env
