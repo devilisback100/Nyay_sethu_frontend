@@ -15,6 +15,7 @@ const FACILITY_TYPES = [
 const INITIAL_RADIUS = 50000; // 50km in meters
 const RADIUS_INCREMENT = 50000; // 50km increment
 const RESULTS_PER_PAGE = 10;
+const WARNING_TIMEOUT = 2000; // 2 seconds
 
 export function FindHelp() {
     const [userLocation, setUserLocation] = useState(null);
@@ -32,6 +33,17 @@ export function FindHelp() {
     const [travelInfo, setTravelInfo] = useState({});
     const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
     const [searchAttempts, setSearchAttempts] = useState(0); // Track search attempts
+
+    // Auto-remove error messages after 2 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError('');
+            }, WARNING_TIMEOUT);
+
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -98,6 +110,7 @@ export function FindHelp() {
             }));
 
         } catch (error) {
+            // Silent error handling for travel time calculation
         }
     };
 
@@ -240,6 +253,7 @@ export function FindHelp() {
                     }
                 }
             } catch (error) {
+                // Silent error handling for individual search methods
             }
         }
 
@@ -263,6 +277,7 @@ export function FindHelp() {
                     status = response.status;
                 }
             } catch (error) {
+                // Silent error handling for expanded radius search
             }
         }
 
@@ -357,24 +372,28 @@ export function FindHelp() {
                             {/* Add travel information */}
                             {travelInfo[place.place_id] && (
                                 <div className="travel-info">
-                                    <div className="travel-mode">
-                                        <span className="travel-icon">🚗</span>
-                                        <p>
-                                            {travelInfo[place.place_id].driving.distance}
-                                            <span className="travel-time">
-                                                ({travelInfo[place.place_id].driving.duration})
-                                            </span>
-                                        </p>
-                                    </div>
-                                    <div className="travel-mode">
-                                        <span className="travel-icon">🚶</span>
-                                        <p>
-                                            {travelInfo[place.place_id].walking.distance}
-                                            <span className="travel-time">
-                                                ({travelInfo[place.place_id].walking.duration})
-                                            </span>
-                                        </p>
-                                    </div>
+                                    {travelInfo[place.place_id].driving && (
+                                        <div className="travel-mode">
+                                            <span className="travel-icon">🚗</span>
+                                            <p>
+                                                {travelInfo[place.place_id].driving.distance}
+                                                <span className="travel-time">
+                                                    ({travelInfo[place.place_id].driving.duration})
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
+                                    {travelInfo[place.place_id].walking && (
+                                        <div className="travel-mode">
+                                            <span className="travel-icon">🚶</span>
+                                            <p>
+                                                {travelInfo[place.place_id].walking.distance}
+                                                <span className="travel-time">
+                                                    ({travelInfo[place.place_id].walking.duration})
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -418,15 +437,23 @@ export function FindHelp() {
         <div className="find-help">
             <h1>Find Legal Help Nearby</h1>
 
-            {error && <p className="error-message">{error}</p>}
+            {error && (
+                <div className="error-message" style={{
+                    opacity: error ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out'
+                }}>
+                    {error}
+                </div>
+            )}
 
             {!userLocation && (
-                <div className="manual-location">
+                <div className="location-input">
                     <input
                         type="text"
                         placeholder="Enter your address..."
                         value={manualLocation}
                         onChange={(e) => setManualLocation(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && geocodeAddress(manualLocation)}
                     />
                     <button onClick={() => geocodeAddress(manualLocation)}>Submit Location</button>
                 </div>
@@ -438,6 +465,7 @@ export function FindHelp() {
                         key={facility.id}
                         className={`facility-button ${selectedFacility === facility.id ? 'active' : ''}`}
                         onClick={() => fetchNearbyPlaces(facility.id)}
+                        disabled={isSearching}
                     >
                         <span className="facility-icon">{facility.icon}</span>
                         {facility.label}
@@ -491,7 +519,10 @@ export function FindHelp() {
             <div className="split-view">
                 <div className="list-view">
                     {isSearching ? (
-                        <div className="loading-state">Searching for nearby facilities...</div>
+                        <div className="loading-state">
+                            <div className="loading-spinner"></div>
+                            <p>Searching for nearby facilities...</p>
+                        </div>
                     ) : places.length === 0 ? (
                         <div className="empty-state">
                             <p>Select a facility type to see nearby locations</p>

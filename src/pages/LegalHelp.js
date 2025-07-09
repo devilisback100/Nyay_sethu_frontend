@@ -731,7 +731,7 @@ export function LegalHelp() {
                             <textarea
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Describe your legal concern here... (e.g., 'My landlord is harassing me' or 'I need help with domestic violence')"
+                                placeholder="Describe your legal concern here"
                                 disabled={loading}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
