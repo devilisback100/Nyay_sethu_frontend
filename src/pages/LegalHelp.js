@@ -661,7 +661,7 @@ export function LegalHelp() {
                 style={{
                     left: sidebarOpen ? 'auto' : 24,
                     right: sidebarOpen ? 24 : 'auto',
-                    top:'9%'                }}
+                    top:'11%'                }}
             >
                 <span className="arrow-icon">
                     {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
