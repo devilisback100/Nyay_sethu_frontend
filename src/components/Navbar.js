@@ -56,7 +56,7 @@ export function Navbar() {
                     <span className="hamburger-line"></span>
                 </button>
                 <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
-                    <NavLink to="/legal-help" onClick={handleNavClick}>Legal Help</NavLink>
+                    <NavLink to="/legal-help" onClick={handleNavClick}>Chatbot</NavLink>
                     <NavLink to="/nearby-help" onClick={handleNavClick}>Find Help</NavLink>
                     <NavLink to="/nyaysathi" onClick={handleNavClick}>NyaySathi</NavLink>
                     <NavLink to="/about" onClick={handleNavClick}>About Us</NavLink>

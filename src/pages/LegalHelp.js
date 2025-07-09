@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
-import { FaPlus, FaTrash, FaPaperPlane, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { IoMdSend } from "react-icons/io";
+import { FaPlus, FaTrash, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './LegalHelp.css';
 
 // Helper to get chat display name with enhanced logic
@@ -660,8 +661,7 @@ export function LegalHelp() {
                 style={{
                     left: sidebarOpen ? 'auto' : 24,
                     right: sidebarOpen ? 24 : 'auto',
-                    opacity:"0.5"
-                }}
+                    top:'9%'                }}
             >
                 <span className="arrow-icon">
                     {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
@@ -739,13 +739,16 @@ export function LegalHelp() {
                                         sendMessage();
                                     }
                                 }}
+                        
+                                style={{display:"flex"}}
                             />
                             <button
                                 className="send-button"
                                 onClick={sendMessage}
                                 disabled={loading || !newMessage.trim()}
+                                style={{backgroundColor:"purple",opacity:"1",alignSelf:"center",scale:"1.08"}}
                             >
-                                {loading ? 'Sending...' : <FaPaperPlane />}
+                                {loading ? 'Sending...' :<div style={{color:"white",width:"100%"}} > <   IoMdSend /> </div>}
                             </button>
                         </div>
                     </>
