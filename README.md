@@ -171,7 +171,8 @@ Fork, edit, and submit a PR. See CONTRIBUTING.md for more.
 ---
 
 ## 📜 License
-Licensed under the MIT License. Built in 🇮🇳 to empower citizens through legal AI.
+This project is proprietary. All rights reserved by [Suresh paliwal]. Unauthorized copying, reuse, or distribution is strictly prohibited.
+
 
 ---
 
