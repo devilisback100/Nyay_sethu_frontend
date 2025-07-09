@@ -171,7 +171,13 @@ Fork, edit, and submit a PR. See CONTRIBUTING.md for more.
 ---
 
 ## 📜 License
-This project is proprietary. All rights reserved by [Suresh paliwal]. Unauthorized copying, reuse, or distribution is strictly prohibited.
+This project is the intellectual property of [Nyay Sethu].
+
+© 2025 [Suresh Paliwal]. All rights reserved.
+
+Unauthorized use, copying, distribution, or reverse engineering of this software, in part or full, is strictly prohibited. This software is intended for internal evaluation and private deployment only.
+
+For commercial use or licensing inquiries, please contact: [sanj35814@gmail.com]
 
 
 ---
