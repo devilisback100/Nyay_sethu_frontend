@@ -1112,21 +1112,7 @@ select:focus-visible {
 
 /* Dark mode support with enhanced mobile considerations */
 @media (max-width: 576px) and (prefers-color-scheme: dark) {
-    :root {
-        --bg-light: #111827;
-        --surface: #1f2937;
-        --surface-light: #1a1f2b;
 
-        --text: #f3f4f6;
-        --text-secondary: #9ca3af;
-
-        --border: #374151;
-        --border-light: #2d3748;
-
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-    }
 
     .message.ai .message-content {
         background: linear-gradient(135deg, #273549, #1f2937);
