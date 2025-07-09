@@ -165,10 +165,7 @@ GEMINI_API_KEY=your_gemini_key
 
 ---
 
-## 🤝 Contributing
-Fork, edit, and submit a PR. See CONTRIBUTING.md for more.
 
----
 
 ## 📜 License
 This project is the intellectual property of [Nyay Sethu].
