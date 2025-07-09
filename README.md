@@ -1,70 +1,178 @@
-# Getting Started with Create React App
+# ⚖️ NyaySathi
+Empowering Justice with AI, Empathy, and Verified Legal Support
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Build](https://img.shields.io/badge/Build-Flask%20%7C%20React%20%7C%20Gemini%20%7C%20FAISS-blueviolet)
+![Status](https://img.shields.io/badge/Status-Beta-green)
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🗄️ Preview
+NyaySathi – where technology meets justice.
 
-### `npm start`
+![Hero Page](public/Resources/hero_page.png)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🌐 Live Links
+- 🚀 **Frontend:** [nyay-sathi.vercel.app](https://nyay-sathi.vercel.app)
+- 🧠 **Backend API:** Hosted via Render / HuggingFace Spaces
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🧐 About the Project
+NyaySathi is a two-sided legal help platform combining:
+- AI chatbot for IPC/legal guidance
+- Verified lawyers, NGOs, judges, and professors (NyaySathis)
+- Appointment scheduling & chat
+- Legal education for the public
+- SOS & emotion detection for emergency help
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## ✨ Key Features
+| Feature                     | Description |
+|----------------------------|-------------|
+| 🧠 AI Legal Assistant       | Real-time, multilingual legal help |
+| 📚 IPC Section Finder       | FAISS + Gemini-based intelligent search |
+| 🗕️ Appointment Scheduler    | Two-step dynamic appointment form |
+| 👨‍⚖️ Verified NyaySathi     | Role-based signup and dashboard |
+| 💬 Chat Integration         | User ↔ NyaySathi messaging |
+| 💾 Legal Education          | Static and animated tutorials |
+| 📱 Responsive Design        | Mobile-first experience |
+| 🚘 SOS & Emotion Detector   | Alerts for serious queries |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## ⚙️ Tech Stack
+| Layer        | Tools Used |
+|--------------|------------|
+| **Frontend** | React.js, Tailwind CSS, Vercel |
+| **Backend**  | Flask, JWT, REST APIs |
+| **AI Layer** | Gemini Pro, FAISS (local vector search) |
+| **Database** | MongoDB or SQLite |
+| **Deployment** | Vercel (Frontend), Render/HuggingFace (Backend) |
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🧐 AI Chat System
+Our Gemini + FAISS-powered bot helps users understand the legal situation and guides them with IPCs and next steps.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+![AI Chat Mobile](public/Resources/mobile_chat_page.png)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🗕️ Appointments & Profiles
+### 👨‍⚖️ NyaySathi Profile View
+Verified expert dashboard with credentials and case activity
 
-## Learn More
+![NyaySathi Profile](public/Resources/nyaysathi_profile.png)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 👤 User Profile View
+Track case progress, chat, and feedback
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+![User Profile](public/Resources/user_profile.png)
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 📘 Legal Help – Multilingual AI Assistance
+### 🗣️ Step 1 – Choose Your Language
+NyaySathi supports all 22 official Indian languages. Users can pick any language for help, and the system adapts instantly.
 
-### Analyzing the Bundle Size
+![Multilingual Support UI](public/Resources/legal_help_1.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 🧠 Step 2 – AI Begins the Conversation
+The chatbot responds in the selected language. This image shows a subset of actual conversation in action.
 
-### Making a Progressive Web App
+![Start of Legal Chat UI](public/Resources/legal_help_2.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### 🎥 Learn Your Rights with Tutorial GIF
+Visual guide for legal awareness and actions.
 
-### Advanced Configuration
+![Legal Help Tutorial](public/Resources/legal_help_tut.gif)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 🧭 Find Help Page
+Smartly recommends nearby and categorized legal support systems:
+- 👮‍♂️ Police Stations
+- 🏢 NGOs
+- 🤝 Legal Aid Volunteers
+- ⚖️ Courts
+- 👩‍⚖️ Women Help Centers
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+![Find Help Page](public/Resources/find_help_page.png)
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📱 Mobile View Support
+Optimized for accessibility on smaller screens.
+
+![Mobile Hero](public/Resources/mobile_hero_page.png)
+![Mobile Chat](public/Resources/mobile_chat_page.png)
+
+---
+
+## 📁 Project Structure
+```
+nyay-sathi/
+├── client/
+│   ├── pages/
+│   ├── components/
+│   ├── public/Resources/
+│   └── App.js
+├── backend/
+│   ├── routes/
+│   ├── models/
+│   ├── faiss_engine.py
+│   └── app.py
+└── README.md
+```
+
+---
+
+## 🔧 Local Setup
+```bash
+# Clone repository
+git clone https://github.com/your-username/nyay-sathi.git
+cd nyay-sathi
+
+# Frontend setup
+cd client
+npm install
+npm run dev
+
+# Backend setup
+cd ../backend
+pip install -r requirements.txt
+python app.py
+```
+
+.env file (backend):
+```
+JWT_SECRET=your_secret_key
+GEMINI_API_KEY=your_gemini_key
+```
+
+---
+
+## 🔮 Future Roadmap
+- 🎤 Voice-to-Text for Hindi Queries
+- 📃 FIR Decoder + PDF Parser
+- 📊 Admin Analytics Panel
+- 📞 Video Calling with NyaySathi
+- 🧠 Agent-style LangGraph AI flows
+
+---
+
+## 🤝 Contributing
+Fork, edit, and submit a PR. See CONTRIBUTING.md for more.
+
+---
+
+## 📜 License
+Licensed under the MIT License. Built in 🇮🇳 to empower citizens through legal AI.
+
+---
+
+> ⭐ Loved the project? Star this repo and share it with your friends!
