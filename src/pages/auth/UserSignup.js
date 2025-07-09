@@ -61,16 +61,33 @@ export function UserSignup({ onBack }) {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userType', 'user');
-                localStorage.setItem('email', formData.email);
-                localStorage.setItem('password', formData.password);
-                setSuccess('Account created successfully! Redirecting to your profile...');
-                setError('');
-                setTimeout(() => {
-                    window.location.href = '/profile';
-                }, 2000);
+                // Signup successful, now log the user in to get the token
+                const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        password: formData.password,
+                    }),
+                });
+
+                if (loginRes.ok) {
+                    const loginData = await loginRes.json();
+                    // Store token and user info
+                    localStorage.setItem('token', loginData.token);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userType', 'user');
+                    localStorage.setItem('email', formData.email);
+                    localStorage.setItem('password', formData.password);
+                    setSuccess('Account created successfully! Redirecting to your profile...');
+                    setError('');
+                    setTimeout(() => {
+                        window.location.href = '/profile';
+                    }, 2000);
+                } else {
+                    setError('Account created, but failed to log in. Please sign in manually.');
+                    setSuccess('');
+                }
             } else {
                 const data = await response.json();
                 setError(data.error || 'Failed to create account.');

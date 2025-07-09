@@ -316,11 +316,7 @@ button {
     transition: var(--transition);
 }
 
-button:hover:not(:disabled) {
-    background-color: var(--surface);
-    color: var(--primary);
-    opacity: 0.4;
-}
+
 
 button:disabled {
     opacity: 0.5;
