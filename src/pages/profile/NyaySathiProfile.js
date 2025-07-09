@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaSignOutAlt, FaClock, FaMoneyBillWave, FaStar, FaCalendarAlt, FaTimes } from 'react-icons/fa';
 import './NyaySathiProfile.css';
@@ -14,8 +14,9 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
     const [error, setError] = useState('');
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
+    const fileInputRef = useRef(null);
 
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     const fetchUserDetails = useCallback(async (userId) => {
         try {
@@ -144,7 +145,6 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
     const handleAppointmentAction = async (appointmentId, action) => {
         try {
             const token = localStorage.getItem('token');
-            console.log(`[DEBUG] Sending ${action} request for appointment_id: ${appointmentId}`);
             const response = await fetch(`${BACKEND_URL}/api/appointments/${action}`, {
                 method: 'POST',
                 headers: {
@@ -157,16 +157,13 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
             });
 
             if (response.ok) {
-                console.log(`[DEBUG] ${action} request successful for appointment_id: ${appointmentId}`);
                 setError('');
                 onProfileUpdate();
             } else {
                 const errorData = await response.json();
-                console.error(`[DEBUG] ${action} request failed:`, errorData);
                 setError(`Failed to ${action} appointment. ${errorData.error || 'Please try again.'}`);
             }
         } catch (err) {
-            console.error(`[DEBUG] Network error during ${action}:`, err);
             setError(`Failed to ${action} appointment. Please check your connection and try again.`);
         }
     };
@@ -186,7 +183,6 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                 return;
             }
 
-            console.log('[DEBUG] Appointment object:', appt); // Log the entire appt object
 
             const payload = {
                 user_id: appt.user_id,
@@ -196,7 +192,6 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                 is_ai_chat: false,
             };
 
-            console.log('[DEBUG] Starting chat with payload:', payload);
 
             const response = await fetch(`${BACKEND_URL}/api/chats`, {
                 method: 'POST',
@@ -209,15 +204,51 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
 
             const data = await response.json();
             if (response.ok && data.chat_id) {
-                console.log('[INFO] Chat created:', data);
                 navigate(`/chat/${data.chat_id}`);
             } else {
-                console.error('[ERROR] Chat creation failed:', data);
                 setError(data.error || 'Unable to start chat. Please try again.');
             }
         } catch (err) {
-            console.error('[ERROR] Server error in handleStartChat:', err);
             setError('Server error. Please try again later.');
+        }
+    };
+
+    const handleImageClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const validFileTypes = ['image/png', 'image/jpeg'];
+        if (!validFileTypes.includes(file.type)) {
+            setError('Invalid file type. Only PNG and JPEG are allowed.');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${BACKEND_URL}/api/nyaysathi/upload/profile-picture`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setError('');
+                onProfileUpdate();
+            } else {
+                setError(data.error || 'Failed to upload image.');
+            }
+        } catch (err) {
+            setError('Failed to upload image.');
         }
     };
 
@@ -418,12 +449,25 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
         <div className="nyaysathi-dashboard">
             <div className="dashboard-sidebar">
                 <div className="profile-brief">
-                    <div className="profile-avatar">
-                        {profile.profile_picture ? (
-                            <img src={profile.profile_picture} alt={profile.name} />
+                    <div className="profile-avatar" onClick={handleImageClick}>
+                        {profile.profile_picture?.secure_url ? (
+                            <img
+                                src={profile.profile_picture.secure_url}
+                                alt={profile.name || 'NyaySathi'}
+                                onError={(e) => {
+                                    e.target.onerror = null; // Prevent infinite loop
+                                    e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBhbGlnbm1lbnQtYmFzZWxpbmU9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmaWxsPSIjOTk5OTk5Ij5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=";
+                                }}
+                            />
                         ) : (
-                            <div className="default-avatar">{profile.name?.charAt(0)}</div>
+                            <div className="default-avatar">{profile.name?.charAt(0).toUpperCase() || '?'}</div>
                         )}
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={handleImageUpload}
+                        />
                     </div>
                     <h3>{profile.name || 'Name not available'}</h3>
                     <p>{profile.type || 'Type not provided'}</p>

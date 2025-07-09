@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaArrowLeft, FaGavel, FaUserTie, FaUniversity, FaHandshake, FaBuilding } from 'react-icons/fa';
+import { TermsAndConditions } from '../../components/TermsAndConditions'; // Import the modal component
 
 export function NyaySathiSignup({ onBack }) {
     const [step, setStep] = useState(1);
@@ -31,6 +32,8 @@ export function NyaySathiSignup({ onBack }) {
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isTermsOpen, setIsTermsOpen] = useState(false); // State to control the modal
+    const [termsAccepted, setTermsAccepted] = useState(false); // State for checkbox
 
     // State for storing states and cities
     const [states, setStates] = useState([]);
@@ -92,7 +95,6 @@ export function NyaySathiSignup({ onBack }) {
                 const data = await response.json();
                 setStates(data);
             } catch (error) {
-                console.error("Error fetching states:", error);
                 setError("Failed to load states. Please try again.");
             } finally {
                 setIsLoadingStates(false);
@@ -129,7 +131,6 @@ export function NyaySathiSignup({ onBack }) {
                 setCities(data);
                 setFormData(prevData => ({ ...prevData, district: '' })); // Reset district when state changes
             } catch (error) {
-                console.error("Error fetching cities:", error);
                 setError("Failed to load cities. Please try again.");
             } finally {
                 setIsLoadingCities(false);
@@ -319,11 +320,82 @@ export function NyaySathiSignup({ onBack }) {
         }
     };
 
+    const handleFileChange = (e, field) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const validFileTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!validFileTypes.includes(file.type)) {
+            setError('Invalid file type. Only PDF, JPEG, and PNG are allowed.');
+            return;
+        }
+
+        setFormData((prevData) => ({
+            ...prevData,
+            [field]: file,
+        }));
+    };
+
+    const handleTermsClick = () => {
+        setIsTermsOpen(true); // Open the modal
+    };
+
+    const handleTermsClose = () => {
+        setIsTermsOpen(false); // Close the modal
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!termsAccepted) {
+            alert('You must accept the Terms and Conditions to proceed.');
+            return;
+        }
+        const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+        try {
+            const formDataToSend = new FormData();
+            Object.keys(formData).forEach((key) => {
+                if (formData[key]) {
+                    formDataToSend.append(key, formData[key]);
+                }
+            });
+
+            const response = await fetch(`${BACKEND_URL}/api/nyaysathi`, {
+                method: 'POST',
+                body: formDataToSend,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userType', 'nyaysathi');
+                localStorage.setItem('email', formData.email);
+                setSuccess('NyaySathi account created successfully! You can check the status of your verification in a few hours by logging into this website.');
+                setError('');
+                setTimeout(() => {
+                    window.location.href = '/profile'; // Redirect to NyaySathi profile
+                }, 3000); // Wait for 3 seconds before redirecting
+            } else {
+                const data = await response.json();
+                setError(data.error || 'Failed to create account.');
+                setSuccess('');
+            }
+        } catch (err) {
+            setError('An error occurred. Please try again.');
+            setSuccess('');
+        }
+    };
+
     const renderDocumentRequirements = () => {
         const commonDocs = (
             <div className="form-group">
                 <label>ID Proof</label>
-                <input type="file" accept=".pdf,.jpg,.png" required />
+                <input
+                    type="file"
+                    accept=".pdf,.jpg,.png"
+                    onChange={(e) => handleFileChange(e, 'idProof')}
+                    required
+                />
             </div>
         );
 
@@ -334,79 +406,121 @@ export function NyaySathiSignup({ onBack }) {
                         {commonDocs}
                         <div className="form-group">
                             <label>Bar Council Certificate</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'barCouncilCertificate')}
+                                required
+                            />
                         </div>
                         <div className="form-group">
                             <label>Practice Certificate</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'licenseProof')}
+                                required
+                            />
                         </div>
                     </>
                 );
-
             case 'ngo':
                 return (
                     <>
                         {commonDocs}
                         <div className="form-group">
                             <label>NGO Registration Certificate</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'ngoRegistration')}
+                                required
+                            />
                         </div>
                         <div className="form-group">
                             <label>Annual Reports (Last 2 Years)</label>
-                            <input type="file" accept=".pdf" multiple required />
-                        </div>
-                        <div className="form-group">
-                            <label>Legal Aid Experience Proof</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                multiple
+                                onChange={(e) => handleFileChange(e, 'annualReports')}
+                                required
+                            />
                         </div>
                     </>
                 );
-
             case 'judge':
                 return (
                     <>
                         {commonDocs}
                         <div className="form-group">
                             <label>Retirement Documents</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'retirementDocuments')}
+                                required
+                            />
                         </div>
                         <div className="form-group">
                             <label>Service Records</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'serviceRecords')}
+                                required
+                            />
                         </div>
                     </>
                 );
-
             case 'professor':
                 return (
                     <>
                         {commonDocs}
                         <div className="form-group">
                             <label>Academic Credentials</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'academicCredentials')}
+                                required
+                            />
                         </div>
                         <div className="form-group">
                             <label>Research Publications</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'researchPublications')}
+                                required
+                            />
                         </div>
                     </>
                 );
-
             case 'volunteer':
                 return (
                     <>
                         {commonDocs}
                         <div className="form-group">
                             <label>Legal Aid Certification</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'legalAidCertification')}
+                                required
+                            />
                         </div>
                         <div className="form-group">
                             <label>Volunteer Experience Proof</label>
-                            <input type="file" accept=".pdf" required />
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileChange(e, 'volunteerExperienceProof')}
+                                required
+                            />
                         </div>
                     </>
                 );
-
             default:
                 return null;
         }
@@ -449,6 +563,16 @@ export function NyaySathiSignup({ onBack }) {
                                     placeholder="Enter your phone number"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Password</label>
+                                <input
+                                    type="password"
+                                    placeholder="Enter your password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     required
                                 />
                             </div>
@@ -510,40 +634,6 @@ export function NyaySathiSignup({ onBack }) {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
-
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/nyaysathi`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-
-            if (response.ok) {
-                // eslint-disable-next-line no-unused-vars
-                const data = await response.json();
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userType', 'nyaysathi');
-                localStorage.setItem('email', formData.email);
-                localStorage.setItem('password', formData.password);
-                setSuccess('NyaySathi account created successfully! Redirecting to your dashboard...');
-                setError('');
-                setTimeout(() => {
-                    window.location.href = '/profile'; // Redirect to NyaySathi profile
-                }, 2000);
-            } else {
-                const data = await response.json();
-                setError(data.error || 'Failed to create account.');
-                setSuccess('');
-            }
-        } catch (err) {
-            setError('An error occurred. Please try again.');
-            setSuccess('');
-        }
-    };
-
     return (
         <div className="signup-container">
             <button className="back-button" onClick={onBack}>
@@ -559,6 +649,22 @@ export function NyaySathiSignup({ onBack }) {
             </div>
             <form className="signup-form" onSubmit={handleSubmit}>
                 {renderStep()}
+                <div className="form-group terms">
+                    <label className="checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            required
+                        />
+                        <span>
+                            I agree to the{' '}
+                            <span className="terms-link" onClick={handleTermsClick} style={{ color: "blue", textDecorationLine: "underline" }}>
+                                Terms of Service and Privacy Policy
+                            </span>
+                        </span>
+                    </label>
+                </div>
                 {error && <p className="error-message">{error}</p>}
                 {success && <p className="success-message">{success}</p>}
                 <div className="form-actions">
@@ -578,6 +684,10 @@ export function NyaySathiSignup({ onBack }) {
                     )}
                 </div>
             </form>
+            <TermsAndConditions
+                isOpen={isTermsOpen}
+                onClose={handleTermsClose}
+            />
         </div>
     );
 }

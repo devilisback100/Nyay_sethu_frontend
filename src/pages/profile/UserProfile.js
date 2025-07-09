@@ -11,14 +11,13 @@ export function UserProfile() {
     const [appointments, setAppointments] = useState([]);
     const [internalUserType, setInternalUserType] = useState(null);
 
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     // Utility function to determine the correct user type
     const determineUserType = useCallback(() => {
         // Read from token first, as it's the most authoritative source
         const token = localStorage.getItem('token');
         if (!token) {
-            console.error("No token found in localStorage");
             return null;
         }
 
@@ -26,7 +25,6 @@ export function UserProfile() {
             // Simple decode function - not full verification
             const base64Url = token.split('.')[1];
             if (!base64Url) {
-                console.error("Invalid token format - missing payload segment");
                 return null;
             }
 
@@ -37,39 +35,32 @@ export function UserProfile() {
                 ).join('')
             );
             const decoded = JSON.parse(jsonPayload);
-            console.log("Decoded token payload:", decoded);
 
             // Return the user type from token if available
             if (decoded.userType) {
-                console.log("Found userType in token:", decoded.userType);
                 return decoded.userType;
             }
 
             // If we have specific IDs, we can infer the type
             if (decoded.nyaysathi_id) {
-                console.log("Found nyaysathi_id in token, assuming nyaysathi type");
                 return 'nyaysathi';
             }
 
             if (decoded.user_id) {
                 // This is ambiguous, could be either type
-                console.log("Found user_id in token, checking localStorage for clarification");
                 const storedType = localStorage.getItem('userType');
                 if (storedType) {
                     return storedType;
                 }
                 // Default to regular user if we can't determine
-                console.log("Defaulting to 'user' type");
                 return 'user';
             }
 
         } catch (e) {
-            console.error("Error decoding token:", e);
         }
 
         // Fallback to localStorage if token decode fails
         const storedType = localStorage.getItem('userType');
-        console.log("Falling back to localStorage userType:", storedType);
         return storedType || null;
     }, []);
 
@@ -126,6 +117,12 @@ export function UserProfile() {
                     'Authorization': `Bearer ${token}`,
                 },
             });
+
+            if (profileResponse.status === 500) {
+                setError('Internal server error. Please try again later.');
+                setLoading(false);
+                return;
+            }
 
             // Handle user type mismatch or not found
             if (profileResponse.status === 401 || profileResponse.status === 403) {

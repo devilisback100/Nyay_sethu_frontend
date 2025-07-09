@@ -17,21 +17,35 @@ export function SuccessStories() {
         {
             id: 1,
             name: "Rajesh Kumar",
-            title: "Property Dispute Resolution",
-            story: "After a 3-year long property dispute, NyaySathi's legal team helped me win my case. Their guidance was invaluable throughout the process.",
+            title: "Property Dispute Resolved Peacefully",
+            story: "After years of court delays, I got legal clarity and support from a verified NyaySathi advocate. Their guidance helped me avoid unnecessary litigation and settle fairly.",
             category: "Property Law",
             rating: 5,
             date: "March 2024"
         },
-        // Add more success stories...
+        {
+            id: 2,
+            name: "Meena Joshi",
+            title: "Escaped Domestic Violence Safely",
+            story: "NyaySaathi's AI assistant helped me understand my rights under the Domestic Violence Act. I found a shelter and free legal aid nearby. I feel safe and empowered now.",
+            category: "Domestic Violence",
+            rating: 5,
+            date: "May 2024"
+        },
+        {
+            id: 3,
+            name: "Ravi Sharma",
+            title: "Legal Aid When I Had No One",
+            story: "I was falsely accused and had no money for a lawyer. Through NyaySaathi, I got connected to a legal aid volunteer who took up my case and proved my innocence.",
+            category: "Legal Aid",
+            rating: 4,
+            date: "June 2024"
+        }
     ];
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Handle form submission logic here
-        console.log(formData);
         setShowForm(false);
-        // Reset form
         setFormData({
             name: '',
             title: '',
@@ -46,7 +60,7 @@ export function SuccessStories() {
         <div className="success-stories">
             <div className="success-hero">
                 <h1>Success <span className="highlight">Stories</span></h1>
-                <p>Real stories from people who found justice through NyaySathi</p>
+                <p>Real journeys of courage, justice, and change through NyaySaathi</p>
                 <button className="share-story-btn" onClick={() => setShowForm(true)}>
                     Share Your Story
                 </button>
@@ -117,8 +131,9 @@ export function SuccessStories() {
                                     <option value="">Select Category</option>
                                     <option value="Property Law">Property Law</option>
                                     <option value="Family Law">Family Law</option>
-                                    <option value="Criminal Law">Criminal Law</option>
-                                    <option value="Civil Law">Civil Law</option>
+                                    <option value="Domestic Violence">Domestic Violence</option>
+                                    <option value="Cyber Crime">Cyber Crime</option>
+                                    <option value="Legal Aid">Legal Aid</option>
                                 </select>
                             </div>
                             <div className="form-group">

@@ -6,11 +6,11 @@
 
 .services-hero {
     text-align: center;
-    padding: 4rem 1rem;
+    padding: 2.5rem 1rem;
     background: linear-gradient(135deg, var(--primary), var(--accent));
     color: var(--text-light);
     border-radius: var(--radius-lg);
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
 }
 
 .services-hero h1 {
@@ -19,26 +19,38 @@
 }
 
 .services-hero .highlight {
-    color: var(--secondary);
+    color: var(--success);
+    font-weight: 700;
     position: relative;
+}
+
+.services-hero p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 1rem;
 }
 
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.5rem;
 }
 
 .service-card {
     background: var(--surface-light);
     border-radius: var(--radius-lg);
-    padding: 2rem;
+    padding: 1.5rem;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
 }
 
 .service-card:hover {
@@ -46,32 +58,87 @@
     box-shadow: var(--shadow-lg);
 }
 
+.service-card.coming-soon {
+    opacity: 0.9;
+    background: linear-gradient(to bottom, var(--surface-light), var(--surface));
+    position: relative;
+}
+
+.service-card.coming-soon::after {
+    content: 'Coming Soon';
+    position: absolute;
+    top: -10px;
+    right: 50%;
+    transform: translateX(50%);
+    background: var(--accent);
+    color: var(--text-light);
+    padding: 0.25rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.service-card.highlight-card {
+    border: 2px solid var(--success);
+    transform: scale(1.02);
+}
+
+.service-highlight {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--success);
+    color: white;
+    padding: 3px 10px;
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.service-card.coming-soon .service-highlight {
+    background: var(--accent);
+    opacity: 0.9;
+}
+
 .service-icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: var(--primary);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .service-card h2 {
     color: var(--text);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
 }
 
 .service-description {
     color: var(--text-secondary);
-    margin-bottom: 1.5rem;
-    min-height: 3em;
+    margin-bottom: 1rem;
+    min-height: 2.7em;
+    font-size: 0.9rem;
 }
 
 .service-price {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .price {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--secondary);
+}
+
+.price.free {
+    color: var(--success);
+    font-size: 1.3rem;
+}
+
+.price.premium {
+    color: var(--accent);
 }
 
 .period {
@@ -82,15 +149,17 @@
 .service-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 2rem;
+    margin: 0 0 1.5rem;
     text-align: left;
+    flex-grow: 1;
 }
 
 .service-features li {
-    padding: 0.5rem 0;
+    padding: 0.35rem 0;
     color: var(--text);
     position: relative;
     padding-left: 1.5rem;
+    font-size: 0.9rem;
 }
 
 .service-features li::before {
@@ -100,9 +169,19 @@
     color: var(--success);
 }
 
+.service-features li.unavailable {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.service-features li.unavailable::before {
+    content: '⏳';
+    color: var(--accent);
+}
+
 .service-button {
     width: 100%;
-    padding: 1rem;
+    padding: 0.75rem;
     background: var(--primary);
     color: var(--text-light);
     border: none;
@@ -110,6 +189,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin-top: auto;
 }
 
 .service-button:hover {
@@ -117,13 +197,121 @@
     transform: translateY(-2px);
 }
 
+.service-button.disabled {
+    background: var(--surface-dark);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.service-button.disabled:hover {
+    background: var(--surface-dark);
+    transform: none;
+}
+
+.service-button.available {
+    background: var(--success);
+}
+
+.service-button.available:hover {
+    background: var(--success-dark);
+}
+
+.service-card .language-support {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.language-badge {
+    background: var(--surface-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.service-highlight.multilingual {
+    background: var(--accent);
+}
+
+.service-highlight.support {
+    background: var(--success);
+}
+
+.service-highlight.local-help {
+    background: var(--warning);
+}
+
+.service-highlight.always-available {
+    background: var(--success);
+}
+
+.service-highlight.request-access {
+    background: var(--warning);
+}
+
+.service-card .availability-note {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    padding: 0.25rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.service-card .instant-access {
+    color: var(--success);
+}
+
+.service-card .approval-needed {
+    color: var(--warning);
+}
+
 @media (max-width: 768px) {
     .services-hero h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        max-width: 400px;
+    }
+
+    .service-card {
+        min-height: 340px;
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .services-hero {
+        padding: 2rem 0.75rem;
+        margin-bottom: 1.5rem;
     }
 
     .services-grid {
         grid-template-columns: 1fr;
-        max-width: 400px;
+        max-width: 100%;
     }
+
+    .service-card {
+        min-height: auto;
+        padding: 1rem;
+    }
+}
+
+.service-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.service-header {
+    margin-bottom: auto;
+}
+
+.service-footer {
+    margin-top: auto;
 }

@@ -43,7 +43,7 @@ export function Navbar() {
                 <Link to="/" className="navbar-brand" onClick={handleNavClick}>
                     <h1>
                         <span className="brand-nyay">न्याय</span>
-                        <span className="brand-sathi">Sathi</span>
+                        <span className="brand-sathi">Setu</span>
                     </h1>
                 </Link>
                 <button

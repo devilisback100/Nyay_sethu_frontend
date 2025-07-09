@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -18,6 +18,8 @@ import { AppointmentSchedule } from './pages/appointments/AppointmentSchedule';
 import { CaseQuery } from './pages/CaseQuery';
 import './App.css';
 
+
+
 // Define ProtectedRoute component and actually use it
 const ProtectedRoute = ({ children }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -30,8 +32,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Verify the backend URL
-console.log("Backend URL:", process.env.REACT_APP_BACKEND_URL);
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -43,10 +43,7 @@ class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
-    console.error("Error caught in ErrorBoundary:", error, errorInfo);
-  }
-
+  
   render() {
     if (this.state.hasError) {
       return <h1>Something went wrong. Please try again later.</h1>;
@@ -57,6 +54,11 @@ class ErrorBoundary extends React.Component {
 }
 
 function App() {
+  useEffect(() => {
+    document.body.style.overflow = 'auto';
+    document.body.style.scrollBehavior="none";
+  }, []);
+  
   return (
     <ErrorBoundary>
       <BrowserRouter>
@@ -64,7 +66,7 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<><Home /><Footer /></>} />
-            <Route path="/legal-help" element={<><LegalHelp /><Footer /></>} />
+            <Route path="/legal-help" element={<LegalHelp />} />
             <Route path="/nearby-help" element={<><FindHelp /><Footer /></>} />
             <Route path="/nyaysathi" element={<><NyaySathiList /><Footer /></>} />
             <Route path="/nyaysathi/public/:nyaysathi_id" element={<NyaySathiDetails />} />

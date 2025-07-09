@@ -61,25 +61,29 @@ export function Home() {
             title: "AI Legal Assistant",
             description: "Get instant answers to your legal queries and understand your rights",
             icon: <FaBalanceScale className="feature-icon-svg" />,
-            color: "var(--primary)"
+            color: "var(--primary)",
+            link: "/legal-help"
         },
         {
             title: "Document Analysis",
             description: "AI-powered legal document review with plain language explanations",
             icon: <FaFileAlt className="feature-icon-svg" />,
-            color: "var(--secondary)"
+            color: "var(--secondary)",
+            link: null // No redirect
         },
         {
             title: "Expert Connect",
             description: "Connect with verified lawyers for personalized legal consultation",
             icon: <FaHandshake className="feature-icon-svg" />,
-            color: "var(--accent)"
+            color: "var(--accent)",
+            link: "/nyaysathi"
         },
         {
             title: "Legal Resources",
             description: "Access comprehensive legal guides tailored to your situation",
             icon: <FaBook className="feature-icon-svg" />,
-            color: "var(--success)"
+            color: "var(--success)",
+            link: "/resources"
         }
     ];
 
@@ -159,9 +163,15 @@ export function Home() {
                             </div>
                             <h3>{feature.title}</h3>
                             <p>{feature.description}</p>
-                            <Link to={`/feature/${feature.title.toLowerCase().replace(/\s+/g, '-')}`} className="feature-link">
-                                Learn more <FaArrowRight />
-                            </Link>
+                            {feature.link ? (
+                                <Link to={feature.link} className="feature-link">
+                                    Learn more <FaArrowRight />
+                                </Link>
+                            ) : (
+                                <span className="feature-link disabled">
+                                    Learn more <FaArrowRight />
+                                </span>
+                            )}
                         </div>
                     ))}
                 </div>

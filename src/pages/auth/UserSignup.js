@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { TermsAndConditions } from '../../components/TermsAndConditions';
 
 // eslint-disable-next-line no-unused-vars
 export function UserSignup({ onBack }) {
@@ -16,6 +17,7 @@ export function UserSignup({ onBack }) {
     const [cities, setCities] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isTermsOpen, setIsTermsOpen] = useState(false); // State to control the modal
     const navigate = useNavigate();
 
     const API_KEY = process.env.REACT_APP_PLACES_API_KEY;
@@ -78,6 +80,14 @@ export function UserSignup({ onBack }) {
             setError('An error occurred. Please try again.');
             setSuccess('');
         }
+    };
+
+    const handleTermsClick = () => {
+        setIsTermsOpen(true); // Open the modal
+    };
+
+    const handleTermsClose = () => {
+        setIsTermsOpen(false); // Close the modal
     };
 
     return (
@@ -165,11 +175,15 @@ export function UserSignup({ onBack }) {
                 <div className="form-group terms">
                     <label className="checkbox-label">
                         <input type="checkbox" required />
-                        <span>I agree to the Terms of Service and Privacy Policy</span>
+                        <span>I agree to the <span className="terms-link" style={{ color: "blue", textDecorationLine: "underline" }} onClick={handleTermsClick}>Terms of Service and Privacy Policy</span></span>
                     </label>
                 </div>
                 <button type="submit" className="submit-button">Create Account</button>
             </form>
+            <TermsAndConditions
+                isOpen={isTermsOpen}
+                onClose={handleTermsClose}
+            />
         </div>
     );
 }

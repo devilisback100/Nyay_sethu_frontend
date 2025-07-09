@@ -20,7 +20,7 @@ export function AppointmentSchedule({ nyaysathiId }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const { nyaysathi_id } = useParams();
     const navigate = useNavigate();
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     useEffect(() => {
         if (!nyaysathi_id || nyaysathi_id === 'undefined') {
@@ -98,13 +98,13 @@ export function AppointmentSchedule({ nyaysathiId }) {
                 throw new Error(errData.error || 'Appointment creation failed');
             }
 
+            // eslint-disable-next-line no-unused-vars
             const responseData = await res.json();
-            console.log("Appointment created:", responseData);
 
             setConfirmation('✅ Your appointment has been scheduled successfully. Please wait for NyaySathi to accept the request.');
 
         } catch (err) {
-            console.error('Appointment error:', err);
+
             setError(err.message);
         } finally {
             setLoading(false);

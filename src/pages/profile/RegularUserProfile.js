@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt,
@@ -12,9 +12,12 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [previewNyaySathi, setPreviewNyaySathi] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [profilePicture, setProfilePicture] = useState('');
+    const fileInputRef = useRef(null);
     const navigate = useNavigate();
 
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ;
 
     const handleLogout = () => {
         localStorage.clear();
@@ -65,20 +68,21 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
                 setSuccess('');
             }
         } catch (err) {
-            console.error('[ERROR] Profile update error:', err);
             setError('An error occurred. Please try again.');
         }
     };
 
     useEffect(() => {
         setFormData({ ...profile, newPassword: '' });
+        if (profile?.profile_picture) {
+            setProfilePicture(profile.profile_picture);
+        }
     }, [profile]);
 
     const fetchNyaySathiPreview = async (nyaysathi_id) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                console.error('[ERROR] No token for NyaySathi preview');
                 return;
             }
 
@@ -94,10 +98,8 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
                 const data = await response.json();
                 setPreviewNyaySathi(data);
             } else {
-                console.error('[ERROR] Failed to fetch NyaySathi preview:', await response.json());
             }
         } catch (err) {
-            console.error('[ERROR] NyaySathi preview fetch error:', err);
         }
     };
 
@@ -122,7 +124,6 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
 
             const checkData = await checkResponse.json();
             if (checkResponse.ok && checkData.chat_id) {
-                console.log('[INFO] Existing chat found:', checkData.chat_id);
                 navigate(`/chat/${checkData.chat_id}`);
                 return;
             }
@@ -136,7 +137,6 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
                 is_ai_chat: false,
             };
 
-            console.log('[DEBUG] Creating chat with payload:', payload);
 
             const createResponse = await fetch(`${BACKEND_URL}/api/chats`, {
                 method: 'POST',
@@ -149,15 +149,57 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
 
             const createData = await createResponse.json();
             if (createResponse.ok && createData.chat_id) {
-                console.log('[INFO] Chat created:', createData);
                 navigate(`/chat/${createData.chat_id}`);
             } else {
-                console.error('[ERROR] Chat creation failed:', createData);
                 setError(createData.error || 'Unable to start chat. Please try again.');
             }
         } catch (err) {
-            console.error('[ERROR] Server error in handleStartChat:', err);
             setError('Server error. Please try again later.');
+        }
+    };
+
+    const handleImageClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleImageChange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const validFileTypes = ['image/png', 'image/jpeg'];
+        if (!validFileTypes.includes(file.type)) {
+            setError('Invalid file type. Only PNG and JPEG are allowed.');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('user_id', userId);
+
+            const response = await fetch(`${BACKEND_URL}/api/documents/image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setSelectedImage(URL.createObjectURL(file));
+                setFormData(prev => ({
+                    ...prev,
+                    profile_picture: data.file_url,
+                }));
+                setSuccess('Profile picture updated successfully!');
+            } else {
+                setError(data.error || 'Failed to upload image.');
+            }
+        } catch (err) {
+            setError('Failed to upload image.');
         }
     };
 
@@ -165,12 +207,20 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
         <div className="profile-page">
             <div className="profile-container">
                 <div className="profile-header">
-                    <div className="profile-avatar">
-                        {profile.profile_picture ? (
-                            <img src={profile.profile_picture} alt={profile.name} />
+                    <div className="profile-avatar" onClick={handleImageClick}>
+                        {selectedImage ? (
+                            <img src={selectedImage} alt={profile.name} />
+                        ) : profilePicture ? (
+                            <img src={profilePicture} alt={profile.name} />
                         ) : (
                             <span>{profile.name.charAt(0)}</span>
                         )}
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={handleImageChange}
+                        />
                     </div>
                     <div className="profile-actions">
                         <button className="edit-button" onClick={() => setIsEditing(!isEditing)}>

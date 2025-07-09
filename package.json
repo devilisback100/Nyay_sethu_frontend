@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@react-google-maps/api": "^2.20.6",
+    "@react-pdf-viewer/core": "^3.12.0",
+    "@react-pdf-viewer/default-layout": "^3.12.0",
     "axios": "^1.8.4",
     "dompurify": "^3.2.5",
     "framer-motion": "^11.18.2",
@@ -13,8 +15,9 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
     "react-intersection-observer": "^9.8.1",
+    "react-pdf": "^6.2.0",
     "react-router-dom": "^6.14.1",
-    "react-scripts": "5.0.1"
+    "react-scripts": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -37,5 +40,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1"
   }
 }

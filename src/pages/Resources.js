@@ -1,44 +1,23 @@
-import { FaBook, FaFileAlt, FaVideo, FaQuestion } from 'react-icons/fa';
+import { FaBook, FaDownload } from 'react-icons/fa';
 import './Resources.css';
 
 export function Resources() {
-    const categories = [
-        {
-            title: "Legal Guides",
-            icon: <FaBook />,
-            items: [
-                { title: "Family Law Basics", type: "PDF", size: "2.5 MB" },
-                { title: "Property Rights Guide", type: "PDF", size: "1.8 MB" },
-                { title: "Consumer Protection", type: "PDF", size: "3.2 MB" }
-            ]
-        },
-        {
-            title: "Document Templates",
-            icon: <FaFileAlt />,
-            items: [
-                { title: "Rental Agreement", type: "DOCX", size: "500 KB" },
-                { title: "Legal Notice Format", type: "DOCX", size: "350 KB" },
-                { title: "Affidavit Template", type: "DOCX", size: "400 KB" }
-            ]
-        },
-        {
-            title: "Video Resources",
-            icon: <FaVideo />,
-            items: [
-                { title: "Court Procedures", type: "MP4", size: "25 MB" },
-                { title: "Legal Rights Explained", type: "MP4", size: "30 MB" },
-                { title: "Filing a Police Complaint", type: "MP4", size: "28 MB" }
-            ]
-        },
-        {
-            title: "FAQs",
-            icon: <FaQuestion />,
-            items: [
-                { title: "Common Legal Questions", type: "Article" },
-                { title: "Legal Process Guide", type: "Article" },
-                { title: "Rights & Duties", type: "Article" }
-            ]
-        }
+    const basePath = '/resources/';
+
+    const resources = [
+        { title: "Child Protection in India", file: "child Protection in India.pdf", size: "3.15 MB" },
+        { title: "Consumer Rights", file: "Consumer.pdf", size: "0.69 MB" },
+        { title: "Cyber Crime Awareness", file: "Cyber_Crime.pdf", size: "5.82 MB" },
+        { title: "Domestic Violence", file: "Domestic Violence.pdf", size: "0.01 MB" },
+        { title: "E-Filing Guide", file: "E-filling.pdf", size: "0.76 MB" },
+        { title: "Entitlements in India", file: "Entitlement in India.pdf", size: "0.03 MB" },
+        { title: "Family Law - I", file: "Family_Law-I.pdf", size: "9.95 MB" },
+        { title: "How to File an FIR", file: "fir.pdf", size: "0.47 MB" },
+        { title: "Fundamental Rights & Duties", file: "fundamental rights and duties.pdf", size: "0.54 MB" },
+        { title: "Legal System Handbook", file: "Handbook on Legal System & Procedure.pdf", size: "14.17 MB" },
+        { title: "IPC Sections Overview", file: "ipc's.pdf", size: "1.05 MB" },
+        { title: "Rights of the Accused", file: "rights of the accused.pdf", size: "0.08 MB" },
+        { title: "Women’s Rights in India", file: "Women’s Rights in India.pdf", size: "4.96 MB" }
     ];
 
     return (
@@ -54,29 +33,30 @@ export function Resources() {
                 </div>
 
                 <div className="resources-grid">
-                    {categories.map((category, index) => (
-                        <div className="category-card" key={index}>
-                            <div className="category-header">
-                                <span className="category-icon">{category.icon}</span>
-                                <h2>{category.title}</h2>
-                            </div>
-                            <div className="resource-list">
-                                {category.items.map((item, i) => (
-                                    <div className="resource-item" key={i}>
-                                        <div className="resource-info">
-                                            <h3>{item.title}</h3>
-                                            <span className="resource-meta">
-                                                {item.type} {item.size && `• ${item.size}`}
-                                            </span>
-                                        </div>
-                                        <button className="download-button">
-                                            Download
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                    <div className="category-card">
+                        <div className="category-header">
+                            <span className="category-icon"><FaBook /></span>
+                            <h2>Legal Guides</h2>
                         </div>
-                    ))}
+                        <div className="resource-list">
+                            {resources.map((res, index) => (
+                                <div className="resource-item" key={index}>
+                                    <div className="resource-info">
+                                        <h3>{res.title}</h3>
+                                        <span className="resource-meta">PDF • {res.size}</span>
+                                    </div>
+                                    <a
+                                        href={`${basePath}${encodeURIComponent(res.file)}`}
+                                        download
+                                        className="download-button"
+                                        title="Download PDF"
+                                    >
+                                        <FaDownload style={{ marginRight: "6px" }} />Download
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

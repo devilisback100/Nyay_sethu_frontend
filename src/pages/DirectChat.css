@@ -3,55 +3,133 @@
 .direct-chat {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: calc(100vh - 60px);
+    /* Adjust for navbar */
     background-color: var(--background);
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
+    /* Increased from 800px */
     margin: 0 auto;
     border-radius: var(--radius);
+    position: relative;
     overflow: hidden;
+    /* Changed from scroll to hidden */
     box-shadow: var(--shadow);
+}
+
+/* Optimize chat header */
+.chat-header {
+    padding: 1rem;
+    background-color: var(--surface-light);
+    border-bottom: 1px solid var(--surface-dark);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .chat-messages {
     flex: 1;
-    overflow-y: auto;
     padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     background-color: var(--surface);
+    overflow-y: auto;
+    /* Changed from scroll to auto */
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
 }
 
-.chat-info {
-    background-color: var(--surface-light);
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--surface-dark);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: var(--shadow-sm);
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* Prevent body scroll when modal is open */
+body.chat-open {
+    overflow: hidden;
 }
 
 .chat-partner-info {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+.partner-preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.preview-avatar {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 2px solid var(--primary);
+}
+
+.preview-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-details {
+    display: flex;
     flex-direction: column;
-    font-weight: 500;
+    gap: 0.2rem;
+}
+
+.preview-details h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
     color: var(--text-primary);
 }
 
-.appointment-info {
+.preview-details p {
+    margin: 0;
     font-size: 0.8rem;
     color: var(--text-secondary);
-    margin-top: 0.25rem;
+    line-height: 1.2;
+}
+
+.appointment-info {
+    padding: 0.35rem 0.75rem;
+    background-color: var(--surface);
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    margin-left: 1rem;
 }
 
 .message {
     max-width: 75%;
-    padding: 0.75rem 1rem;
+    /* Reduced from 85% for better readability */
+    padding: 0.75rem;
     border-radius: var(--radius);
     position: relative;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     word-break: break-word;
 }
 
@@ -84,15 +162,103 @@
 }
 
 .message-image {
-    max-width: 100%;
-    border-radius: var(--radius-sm);
+    max-width: 250px;
+    max-height: 250px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
     cursor: pointer;
-    transition: var(--transition);
-    margin-bottom: 0.5rem;
+    transition: transform 0.2s ease-in-out;
 }
 
 .message-image:hover {
+    transform: scale(1.05);
+}
+
+.message-video {
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    border-radius: var(--radius);
+}
+
+.video-container {
+    max-width: 300px;
+    width: 100%;
+}
+
+.video-preview {
+    position: relative;
+    width: 100%;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    padding: 1rem;
+}
+
+.video-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.video-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.video-play-button {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
     opacity: 0.9;
+}
+
+.video-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: var(--surface);
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.video-minimize-btn,
+.video-download-btn {
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.video-download-btn {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.video-minimize-btn:hover,
+.video-download-btn:hover {
+    background: var(--surface-hover);
+    color: var(--primary);
+}
+
+.file-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 10px;
 }
 
 .chat-input {
@@ -153,6 +319,7 @@ button {
 button:hover:not(:disabled) {
     background-color: var(--surface);
     color: var(--primary);
+    opacity: 0.4;
 }
 
 button:disabled {
@@ -199,6 +366,71 @@ button:disabled {
     width: 20px;
     height: 20px;
     font-size: 0.7rem;
+}
+
+.pdf-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--surface-light);
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    width: 100%;
+    max-width: 150px;
+    position: relative;
+}
+
+.pdf-preview:hover {
+    background-color: var(--surface-hover);
+}
+
+.pdf-document {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.pdf-page {
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+.pdf-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.pdf-icon {
+    font-size: 2rem;
+    color: var(--primary);
+}
+
+.pdf-name {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.pdf-download-link {
+    font-size: 0.8rem;
+    color: var(--primary);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.pdf-download-link:hover {
+    color: var(--primary-dark);
 }
 
 .empty-state {
@@ -305,6 +537,14 @@ button:disabled {
 }
 
 /* Responsive Adjustments - Based on viewport width */
+@media (max-width: 1024px) {
+    .direct-chat {
+        max-width: 100%;
+        height: calc(100vh - 60px);
+        border-radius: 0;
+    }
+}
+
 @media (max-width: 900px) {
     .direct-chat {
         max-width: 100%;
@@ -318,7 +558,17 @@ button:disabled {
     }
 
     .message {
-        max-width: 85%;
+        max-width: 90%;
+    }
+
+    .message-image,
+    .video-container,
+    .pdf-container {
+        max-width: 200px;
+    }
+
+    .video-preview {
+        height: 150px;
     }
 
     .chat-info {
@@ -327,6 +577,21 @@ button:disabled {
 
     .chat-input {
         padding: 0.75rem;
+    }
+
+    .chat-partner-info {
+        gap: 0.75rem;
+    }
+
+    .preview-avatar {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+    }
+
+    .appointment-info {
+        display: none;
+        /* Hide on mobile for cleaner header */
     }
 }
 
@@ -356,6 +621,53 @@ button:disabled {
     .empty-chat-container {
         width: 90%;
         padding: 1.5rem;
+    }
+
+    .chat-partner-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .appointment-info {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-partner-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .message {
+        max-width: 95%;
+        padding: 0.5rem;
+    }
+
+    .message-image,
+    .video-container,
+    .pdf-container {
+        max-width: 180px;
+    }
+
+    .video-preview {
+        height: 120px;
+    }
+
+    .chat-header {
+        padding: 0.75rem;
+    }
+
+    .preview-details h3 {
+        font-size: 0.95rem;
+    }
+
+    .preview-details p {
+        font-size: 0.8rem;
     }
 }
 
@@ -420,4 +732,325 @@ button:disabled {
         width: 30px;
         height: 30px;
     }
+}
+
+.pdf-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--surface-light);
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 200px;
+}
+
+.pdf-preview:hover {
+    background-color: var(--surface-hover);
+}
+
+.pdf-embed {
+    width: 100%;
+    height: 150px;
+    border: none;
+    display: block;
+}
+
+.pdf-fallback {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.pdf-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.pdf-name {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    word-break: break-word;
+    text-align: center;
+}
+
+/* Add these styles to your DirectChat.css file */
+
+/* PDF Rendering Styles */
+.pdf-container {
+    margin: 10px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 250px;
+    width: 100%;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-collapsed-view {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.pdf-collapsed-view:hover {
+    background-color: #e9ecef;
+}
+
+.pdf-icon {
+    font-size: 24px;
+    color: #dc3545;
+    margin-right: 12px;
+}
+
+.pdf-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-name {
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 2px;
+    word-break: break-word;
+}
+
+.pdf-action {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.pdf-expanded-view {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.pdf-document {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.pdf-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.pdf-minimize-btn,
+.pdf-download-btn {
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    text-decoration: none;
+}
+
+.pdf-minimize-btn {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.pdf-download-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.pdf-download-btn svg {
+    margin-right: 5px;
+}
+
+/* File Attachment Styles */
+.file-attachment {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.file-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    color: #dc3545;
+}
+
+.file-name {
+    flex-grow: 1;
+    margin-right: 10px;
+    word-break: break-word;
+    font-size: 14px;
+}
+
+.file-download-link {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* Message Image and Video */
+.message-image {
+    max-width: 250px;
+    max-height: 250px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.message-video {
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    border-radius: var(--radius);
+    margin-bottom: 5px;
+}
+
+/* Selected File Info */
+.selected-file-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.selected-file-info button {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 2px 5px;
+    font-size: 12px;
+}
+
+/* Improve input actions */
+.input-actions {
+    display: flex;
+    align-items: center;
+}
+
+.attachment-button,
+.send-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #007bff;
+    margin: 0 5px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.attachment-button:hover,
+.send-button:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.send-button:disabled {
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* React PDF overrides */
+.react-pdf__Page__canvas {
+    margin: 0 auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.react-pdf__Page__textContent {
+    border: none !important;
+}
+
+.react-pdf__message {
+    padding: 20px;
+    color: #dc3545;
+}
+
+.message-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.image-download-btn,
+.download-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.message-image-container:hover .image-download-btn,
+.file-attachment:hover .download-btn {
+    opacity: 1;
+}
+
+.file-attachment {
+    position: relative;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: var(--radius);
+    background: var(--surface-light);
+    transition: background-color 0.2s;
+}
+
+.file-attachment:hover {
+    background: var(--surface-hover);
+}
+
+.file-attachment .download-btn {
+    position: static;
+    opacity: 1;
+    background: var(--primary);
+    margin-left: auto;
 }

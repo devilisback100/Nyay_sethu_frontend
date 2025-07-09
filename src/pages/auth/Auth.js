@@ -13,7 +13,7 @@ export function Auth() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+        const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ;
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
@@ -30,7 +30,6 @@ export function Auth() {
                 const token = data.token;
                 const decoded = jwtDecode(token);
 
-                console.log('[DEBUG] Decoded token:', decoded);
 
                 const userType = decoded.user_type || (decoded.nyaysathi_id ? 'nyaysathi' : 'user');
 
@@ -44,20 +43,14 @@ export function Auth() {
                 localStorage.setItem('preferred_language', decoded.preferred_language || 'english');
                 localStorage.setItem('location', decoded.location?.city || 'unknown');
 
-                console.log('[DEBUG] Local storage set after login:', {
-                    userId: localStorage.getItem('userId'),
-                    userType: localStorage.getItem('userType'),
-                    email: localStorage.getItem('email')
-                });
+              
 
                 navigate('/profile');
             } else {
                 const err = await response.text();
-                console.warn('[WARN] Login failed:', err);
                 alert('Invalid email or password.');
             }
         } catch (error) {
-            console.error('[ERROR] Login error:', error);
             alert('An error occurred during login.');
         }
     };

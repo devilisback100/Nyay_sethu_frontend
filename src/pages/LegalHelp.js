@@ -1,8 +1,127 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
-import { FaPlus, FaTrash, FaPaperPlane, FaBars, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaPaperPlane, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './LegalHelp.css';
+
+// Helper to get chat display name with enhanced logic
+function getChatDisplayName(chat) {
+    // If chat has a custom name, use it
+    if (chat.name && chat.name.trim()) return chat.name;
+
+    // Try to use the third message as the chat name (more descriptive than first)
+    if (chat.messages && Array.isArray(chat.messages) && chat.messages.length >= 3) {
+        const thirdMessage = chat.messages[2];
+        if (thirdMessage && thirdMessage.message_text) {
+            // Get first 30 characters of third message and clean it up
+            let chatName = thirdMessage.message_text.trim();
+            if (chatName.length > 30) {
+                chatName = chatName.substring(0, 30) + '...';
+            }
+            return chatName;
+        }
+    }
+
+    // Fallback to first message if third doesn't exist
+    if (chat.messages && Array.isArray(chat.messages) && chat.messages.length > 0) {
+        const firstMessage = chat.messages[0];
+        if (firstMessage && firstMessage.message_text) {
+            let chatName = firstMessage.message_text.trim();
+            if (chatName.length > 30) {
+                chatName = chatName.substring(0, 30) + '...';
+            }
+            return chatName;
+        }
+    }
+
+    // If no messages, use time-based name
+    if (!chat.created_at) return chat.is_ai_chat ? 'AI Legal Assistant' : 'User Chat';
+
+    const created = new Date(chat.created_at);
+    const now = new Date();
+
+    // Remove time for comparison
+    const createdDay = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const msInDay = 24 * 60 * 60 * 1000;
+    const diffDays = Math.floor((nowDay - createdDay) / msInDay);
+
+    // Enhanced timeframe logic
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) {
+        // Return day name (Monday, Tuesday, etc.)
+        return created.toLocaleDateString(undefined, { weekday: 'long' });
+    }
+    if (diffDays < 14) {
+        return '1 week ago';
+    }
+    if (diffDays < 21) {
+        return '2 weeks ago';
+    }
+    if (diffDays < 28) {
+        return '3 weeks ago';
+    }
+    if (diffDays < 60) {
+        return '1 month ago';
+    }
+    if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return `${months} month${months > 1 ? 's' : ''} ago`;
+    }
+
+    // For dates older than a year
+    const years = Math.floor(diffDays / 365);
+    if (years === 1) {
+        return '1 year ago';
+    }
+    return `${years} years ago`;
+}
+
+const formatAIResponse = (text) => {
+    if (!text) return '';
+
+    let formattedText = text
+        // Convert triple asterisks to strong bold headings
+        .replace(/\*\*\*(.*?)\*\*\*/g, '<h4 class="ai-heading">$1</h4>')
+        // Convert double asterisks to bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Convert single asterisks to italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Convert numbered lists (1. 2. 3. etc.)
+        .replace(/^\d+\.\s+(.+)$/gm, '<li class="ai-list-item">$1</li>')
+        // Convert bullet points with * or -
+        .replace(/^[*-]\s+(.+)$/gm, '<li class="ai-list-item">$1</li>')
+        // Convert sections like "Section 302:" to highlighted format
+        .replace(/Section\s+(\d+[A-Z]*)\s*:?\s*/gi, '<span class="legal-section">Section $1:</span> ')
+        // Convert IPC references
+        .replace(/(\d+[A-Z]*)\s+IPC/gi, '<span class="legal-reference">$1 IPC</span>')
+        // Convert line breaks to HTML breaks
+        .replace(/\n/g, '<br>');
+
+    // Wrap consecutive list items in ul tags
+    formattedText = formattedText.replace(
+        /(<li class="ai-list-item">.*?<\/li>)(?:\s*<br>\s*<li class="ai-list-item">.*?<\/li>)*/gs,
+        (match) => {
+            return '<ul class="ai-list">' + match.replace(/<br>\s*/g, '') + '</ul>';
+        }
+    );
+
+    // Handle emergency contacts and important numbers
+    formattedText = formattedText.replace(
+        /(police at \d+|helpline at \d+|contact \d+)/gi,
+        '<span class="emergency-contact">$1</span>'
+    );
+
+    // Highlight important warnings
+    formattedText = formattedText.replace(
+        /(immediate danger|emergency|urgent|important)/gi,
+        '<span class="important-warning">$1</span>'
+    );
+
+    return formattedText;
+};
 
 export function LegalHelp() {
     const [messages, setMessages] = useState([]);
@@ -10,78 +129,112 @@ export function LegalHelp() {
     const [chatId, setChatId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [chats, setChats] = useState([]);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [error, setError] = useState(null);
+    const [userLocation, setUserLocation] = useState('Delhi, India');
+    const [preferredLanguage, setPreferredLanguage] = useState('English');
+    const [sidebarOpen, setSidebarOpen] = useState(true);
     const messagesEndRef = useRef(null);
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+    const MODEL_BACKEND_URL = process.env.REACT_APP_Model_Backend;
     const navigate = useNavigate();
 
-    const validateToken = () => {
+    // Get user's location on component mount
+
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+
+                    try {
+                        const response = await fetch(
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                        );
+                        const data = await response.json();
+
+                        const city = data.address.city || data.address.town || data.address.village || "";
+                        const state = data.address.state || "";
+                        const country = data.address.country || "";
+
+                        const fullLocation = [city, state, country].filter(Boolean).join(", ");
+                        setUserLocation(fullLocation || "Unknown location");
+                    } catch (error) {
+                        setUserLocation("Delhi, India"); // fallback
+                    }
+                },
+                (error) => {
+                    setUserLocation("Delhi, India"); // fallback
+                }
+            );
+        } else {
+            setUserLocation("Geolocation not supported");
+        }
+    }, []);
+    
+
+    const fetchChats = async () => {
         const token = localStorage.getItem('token');
         if (!token) {
-            setError('Authentication required. Please login.');
             localStorage.clear();
             navigate('/auth');
-            return false;
+            return;
         }
-        return true;
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/chats/list`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.status === 401) {
+                localStorage.clear();
+                navigate('/auth');
+                return;
+            }
+
+            if (!response.ok) throw new Error('Failed to fetch chats');
+
+            const data = await response.json();
+
+            // Enhanced: Fetch messages for each chat to enable better naming
+            const chatsWithMessages = await Promise.all(
+                data.map(async (chat) => {
+                    try {
+                        const messagesResponse = await fetch(`${BACKEND_URL}/api/chats/${chat.chat_id}/messages`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`,
+                            },
+                        });
+
+                        if (messagesResponse.ok) {
+                            const messagesData = await messagesResponse.json();
+                            return { ...chat, messages: messagesData.messages || [] };
+                        }
+                        return { ...chat, messages: [] };
+                    } catch (error) {
+                        return { ...chat, messages: [] };
+                    }
+                })
+            );
+
+            setChats(chatsWithMessages);
+        } catch (err) {
+        }
     };
 
     useEffect(() => {
-        const fetchChats = async () => {
-            if (!validateToken()) return;
-
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${BACKEND_URL}/api/chats/list`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (response.status === 401) {
-                    console.error('[ERROR] Token expired or invalid');
-                    setError('Session expired. Please login again.');
-                    localStorage.clear();
-                    navigate('/auth');
-                    return;
-                }
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to fetch chats');
-                }
-
-                const data = await response.json();
-                setChats(Array.isArray(data) ? data : []);
-                console.log('[INFO] Chats fetched:', data);
-            } catch (err) {
-                console.error('[ERROR] Error fetching chats:', err);
-                setError(err.message || 'Failed to load chats. Please try again.');
-                setTimeout(() => setError(null), 5000);
-            }
-        };
-
         fetchChats();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [BACKEND_URL, navigate]);
 
     const fetchMessages = async (chatId) => {
-        if (chatId.startsWith('temp_')) {
-            console.warn('[WARN] Skipping fetch for temporary chat ID:', chatId);
-            return;
-        }
-
-        if (!validateToken()) return;
-
+        const token = localStorage.getItem('token');
         try {
-            const token = localStorage.getItem('token');
-            const userId = localStorage.getItem('userId');
-            const nyaysathiId = localStorage.getItem('nyaysathiId');
-            const userType = localStorage.getItem('userType');
-            console.log('[DEBUG] Fetching messages for chat:', chatId, { userId, nyaysathiId, userType, token });
-
             const response = await fetch(`${BACKEND_URL}/api/chats/${chatId}/messages`, {
                 method: 'GET',
                 headers: {
@@ -90,261 +243,216 @@ export function LegalHelp() {
                 },
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('[ERROR] Fetch messages failed:', errorData);
-                throw new Error(errorData.error || 'Failed to fetch messages');
-            }
+            if (!response.ok) throw new Error('Failed to fetch messages');
 
             const data = await response.json();
             setMessages(data.messages || []);
-            console.log('[INFO] Messages fetched for chat:', chatId, data);
         } catch (err) {
-            console.error('[ERROR] Error fetching messages:', err);
-            setError(err.message || 'Failed to load messages.');
-            setTimeout(() => setError(null), 5000);
         }
     };
 
     const sendMessage = async () => {
-        if (!newMessage.trim() || !validateToken()) return;
+        if (!newMessage.trim()) return;
+        if (!chatId) {
+            return;
+        }
 
-        const isNewChat = !chatId || chatId?.startsWith('temp_');
+        const token = localStorage.getItem('token');
+        if (!token) {
+            localStorage.clear();
+            navigate('/auth');
+            return;
+        }
+
+        const userId = localStorage.getItem('userId');
+        const userMessage = newMessage.trim();
+
+        const message = {
+            sender_id: userId,
+            receiver_id: 'ai_bot',
+            message_text: userMessage,
+            message_type: 'text',
+        };
+
+        // Add user message to UI immediately
+        setMessages((prev) => [...prev, { ...message }]);
+        setNewMessage('');
         setLoading(true);
 
         try {
-            let actualChatId = chatId;
-            const userId = localStorage.getItem('userId');
-            const nyaysathiId = localStorage.getItem('nyaysathiId');
-            const userType = localStorage.getItem('userType');
-            const chatUserId = userType === 'nyaysathi' ? nyaysathiId : userId;
-            if (!chatUserId) {
-                throw new Error('User or NyaySathi ID not found in localStorage');
-            }
-
-            if (isNewChat) {
-                const payload = {
-                    is_ai_chat: true,
-                    messages: [],
-                    status: 'active',
-                    user_id: chatUserId,
-                };
-                console.log('[DEBUG] Creating new chat with payload:', payload);
-
-                const chatResponse = await fetch(`${BACKEND_URL}/api/chats/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                if (!chatResponse.ok) {
-                    const errorData = await chatResponse.json();
-                    console.error('[ERROR] Chat creation failed:', errorData);
-                    throw new Error(errorData.error || 'Failed to create chat');
-                }
-
-                const chatData = await chatResponse.json();
-                actualChatId = chatData.chat_id;
-                setChatId(actualChatId);
-
-                setChats(prev => [
-                    {
-                        chat_id: actualChatId,
-                        is_ai_chat: true,
-                        created_at: new Date().toISOString(),
-                        last_message: { message_text: newMessage, timestamp: new Date().toISOString() },
-                        user_id: chatUserId,
-                    },
-                    ...prev,
-                ]);
-            }
-
-            const messagePayload = {
-                receiver_id: 'ai_bot',
-                message_text: newMessage,
-                message_type: 'text',
-            };
-
-            const userMessage = {
-                ...messagePayload,
-                sender_id: chatUserId,
-                timestamp: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, userMessage]);
-            setNewMessage('');
-
-            const response = await fetch(`${BACKEND_URL}/api/chats/messages/add/${actualChatId}`, {
+            // Save the user message to backend
+            const saveMessageResponse = await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify(userMessage),
+                body: JSON.stringify(message),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('[ERROR] Message addition failed:', errorData);
-                throw new Error(errorData.error || 'Failed to add message to chat');
+            if (saveMessageResponse.status === 401) {
+                localStorage.clear();
+                navigate('/auth');
+                return;
             }
 
-            console.log('[INFO] Message added successfully:', userMessage);
+            if (!saveMessageResponse.ok) {
+                throw new Error('Failed to save message');
+            }
 
-            const modelResponse = await fetch(`${process.env.REACT_APP_Model_Backend}/chat`, {
+            // Call the AI model chat endpoint
+            const aiResponse = await fetch(`${MODEL_BACKEND_URL}/model_chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
-                    message: newMessage,
-                    history: [...messages, userMessage].map(msg => ({
-                        type: msg.sender_id === 'ai_bot' ? 'bot' : 'user',
-                        content: msg.message_text,
-                    })),
-                    location: localStorage.getItem('city') || 'Unknown',
-                    preferred_language: localStorage.getItem('preferred_language') || 'English',
+                    message: userMessage,
+                    location: userLocation,
+                    preferred_language: preferredLanguage
                 }),
             });
 
-            if (!modelResponse.ok) {
-                const errorData = await modelResponse.json();
-                throw new Error(errorData.error || 'Failed to get AI response');
+            if (!aiResponse.ok) {
+                throw new Error('Failed to get AI response');
             }
-            const modelData = await modelResponse.json();
 
-            const botMessage = {
-                sender_id: 'ai_bot',
-                receiver_id: chatUserId,
-                message_text: modelData.response,
-                message_type: 'text',
-                timestamp: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, botMessage]);
+            const aiData = await aiResponse.json();
 
-            setChats(prev =>
-                prev.map(chat =>
-                    chat.chat_id === actualChatId
-                        ? {
-                            ...chat,
-                            last_message: {
-                                message_text: modelData.response,
-                                timestamp: new Date().toISOString(),
-                            },
-                        }
-                        : chat
-                )
-            );
+            if (aiData.status === 'success' && aiData.response) {
+                const aiMessage = {
+                    sender_id: 'ai_bot',
+                    receiver_id: userId,
+                    message_text: aiData.response,
+                    message_type: 'text',
+                };
+
+                setMessages((prev) => [...prev, aiMessage]);
+
+                try {
+                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(aiMessage),
+                    });
+
+                    // Update chat list with new messages for better naming
+                    fetchChats();
+                } catch (saveError) {
+                }
+            } else {
+                const errorMessage = {
+                    sender_id: 'ai_bot',
+                    receiver_id: userId,
+                    message_text: aiData.response || 'I apologize, but I encountered an error. Please try again.',
+                    message_type: 'text',
+                };
+                setMessages((prev) => [...prev, errorMessage]);
+
+                try {
+                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(errorMessage),
+                    });
+                } catch (saveError) {
+                }
+            }
+
         } catch (err) {
-            console.error('[ERROR] Error sending message:', err);
-            setError(err.message || 'Failed to send message');
-            setTimeout(() => setError(null), 5000);
+
+            const errorMessage = {
+                sender_id: 'ai_bot',
+                receiver_id: userId,
+                message_text: 'I apologize, but I\'m experiencing technical difficulties. Please try again or contact emergency services if you need immediate help.',
+                message_type: 'text',
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+
+            try {
+                await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(errorMessage),
+                });
+            } catch (saveError) {
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const deleteChat = async (chatId) => {
-        if (!validateToken()) return;
-
+    const deleteChat = async (chatIdToDelete) => {
+        const token = localStorage.getItem('token');
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${BACKEND_URL}/api/chats/delete/${chatId}`, {
+            const response = await fetch(`${BACKEND_URL}/api/chats/delete/${chatIdToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to delete chat');
-            }
+            if (!response.ok) throw new Error('Failed to delete chat');
 
-            setChats(prev => prev.filter(chat => chat.chat_id !== chatId));
-            if (chatId === chatId) setChatId(null);
-            console.log('[INFO] Chat deleted:', chatId);
+            setChats((prev) => prev.filter((chat) => chat.chat_id !== chatIdToDelete));
+            if (chatIdToDelete === chatId) {
+                setChatId(null);
+                setMessages([]);
+            }
         } catch (err) {
-            console.error('[ERROR] Error deleting chat:', err);
-            setError(err.message || 'Failed to delete chat');
-            setTimeout(() => setError(null), 5000);
         }
     };
 
-    const createNewChat = () => {
-        const tempId = `temp_${Date.now()}`;
-        const newChat = {
-            chat_id: tempId,
-            is_ai_chat: true,
-            created_at: new Date().toISOString(),
-            messages: [],
-            last_message: { message_text: "New conversation" },
-            user_id: localStorage.getItem('userId') || localStorage.getItem('nyaysathiId'),
-        };
-
-        setChats(prev => [newChat, ...prev]);
-        setChatId(tempId);
-        setMessages([]);
-        setIsSidebarOpen(false);
-        console.log('[INFO] New temporary chat created:', tempId);
-    };
-
-    const handleFirstMessage = async (tempChatId) => {
-        if (!validateToken()) return null;
+    const createNewChat = async () => {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        if (!token) {
+            localStorage.clear();
+            navigate('/auth');
+            return;
+        }
 
         try {
-            const userId = localStorage.getItem('userId');
-            const nyaysathiId = localStorage.getItem('nyaysathiId');
-            const userType = localStorage.getItem('userType');
-            const chatUserId = userType === 'nyaysathi' ? nyaysathiId : userId;
-            if (!chatUserId) {
-                throw new Error('User or NyaySathi ID not found in localStorage');
-            }
-
             const response = await fetch(`${BACKEND_URL}/api/chats/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     is_ai_chat: true,
+                    user_id: userId,
                     messages: [],
                     status: 'active',
-                    user_id: chatUserId,
                 }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create chat');
+            if (response.status === 401) {
+                localStorage.clear();
+                navigate('/auth');
+                return;
             }
 
-            const data = await response.json();
-            setChats(prev => prev.map(chat =>
-                chat.chat_id === tempChatId ? { ...chat, chat_id: data.chat_id } : chat
-            ));
-            setChatId(data.chat_id);
-            console.log('[INFO] Permanent chat created:', data.chat_id);
-            return data.chat_id;
-        } catch (err) {
-            console.error('[ERROR] Error creating permanent chat:', err);
-            setError(err.message || 'Failed to create chat');
-            setTimeout(() => setError(null), 5000);
-            throw err;
-        }
-    };
+            if (!response.ok) throw new Error('Failed to create new chat');
 
-    const handleChatClick = (selectedChatId) => {
-        if (chatId !== selectedChatId) {
-            setChatId(selectedChatId);
+            const data = await response.json();
+            setChatId(data.chat_id);
+            setChats((prev) => [...prev, { chat_id: data.chat_id, is_ai_chat: true, messages: [] }]);
             setMessages([]);
-            console.log('[INFO] Selected chat:', selectedChatId);
+        } catch (err) {
         }
     };
 
     useEffect(() => {
-        if (chatId) {
-            fetchMessages(chatId);
-        }
+        if (chatId) fetchMessages(chatId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chatId]);
 
     useEffect(() => {
@@ -353,115 +461,198 @@ export function LegalHelp() {
         }
     }, [messages]);
 
-    const getChatPreview = (chat) => {
-        if (!chat.last_message?.message_text && (!chat.messages || chat.messages.length === 0)) {
-            return "Start a new conversation";
-        }
-
-        const lastMessage = chat.last_message?.message_text || chat.messages?.[chat.messages.length - 1]?.message_text || 'New conversation';
-        const words = lastMessage.split(/\s+/);
-        if (words.length <= 3) {
-            return lastMessage.length > 25 ? lastMessage.slice(0, 25) + '...' : lastMessage;
-        }
-        return words.slice(0, 3).join(' ') + '...';
-    };
-
-    const getChatName = (chat) => {
-        if (!chat.created_at) return "New Chat";
-
-        const timestamp = new Date(chat.created_at).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-        });
-
-        const preview = chat.last_message?.message_text || "New conversation";
-        const truncatedPreview = preview.length > 20 ? `${preview.slice(0, 20)}...` : preview;
-
-        return `${truncatedPreview} (${timestamp})`;
-    };
+    const handleSidebarToggle = () => setSidebarOpen((prev) => !prev);
 
     return (
         <div className="legal-help">
-            {error && (
-                <div className="error-toast">
-                    {error}
-                    <button onClick={() => setError(null)}>✕</button>
-                </div>
-            )}
-            <div className={`chat-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
-                <button
-                    className="sidebar-toggle"
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    aria-label="Toggle sidebar"
-                >
-                    {isSidebarOpen ? <FaTimes /> : <FaBars />}
-                </button>
+            {/* Sidebar Overlay for mobile */}
+            <div
+                className={`sidebar-overlay${sidebarOpen ? ' visible' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+                style={{ display: sidebarOpen ? 'block' : 'none' }}
+            />
+
+            {/* Sidebar */}
+            <div className={`chat-sidebar${sidebarOpen ? ' open' : ''}`} style={{ transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)' }}>
                 <button className="new-chat-button" onClick={createNewChat}>
                     <FaPlus /> New Chat
                 </button>
-                {chats.map((chat) => (
-                    <div
-                        key={chat.chat_id}
-                        className={`chat-item ${chat.chat_id === chatId ? 'active' : ''}`}
-                        onClick={() => handleChatClick(chat.chat_id)}
-                    >
-                        <div className="chat-item-content">
-                            <p className="chat-name">{getChatName(chat)}</p>
-                            <div className="chat-preview">
-                                {getChatPreview(chat)}
-                            </div>
-                        </div>
-                        <button
-                            className="delete-chat-button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                deleteChat(chat.chat_id);
-                            }}
-                        >
-                            <FaTrash />
-                        </button>
+
+                {/* Settings section */}
+                <div className="chat-settings">
+                    <div className="setting-group">
+                        <label htmlFor="location">Location:</label>
+                        <input
+                            id="location"
+                            type="text"
+                            value={userLocation}
+                            onChange={(e) => setUserLocation(e.target.value)}
+                            placeholder="Enter your location"
+                        />
                     </div>
-                ))}
-            </div>
-            <div className={`chat-main ${!isSidebarOpen ? 'sidebar-closed' : ''}`}>
-                <div className="messages">
-                    {messages.map((msg, i) => (
-                        <div key={i} className={`message ${msg.sender_id === 'ai_bot' ? 'ai' : 'user'}`}>
-                            <div className="message-content">
-                                {msg.sender_id === 'ai_bot' ? (
-                                    <div
-                                        className="message-text"
-                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.message_text) }}
-                                    />
-                                ) : (
-                                    <div className="message-text">{msg.message_text}</div>
-                                )}
-                            </div>
+                    <div className="setting-group">
+                        <label htmlFor="language">Language:</label>
+                        <select
+                            id="language"
+                            value={preferredLanguage}
+                            onChange={(e) => setPreferredLanguage(e.target.value)}
+                        >
+                            <option value="English">English</option>
+                            <option value="Assamese">অসমীয়া (Assamese)</option>
+                            <option value="Bengali">বাংলা (Bengali)</option>
+                            <option value="Bodo">बड़ो (Bodo)</option>
+                            <option value="Dogri">डोगरी (Dogri)</option>
+                            <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                            <option value="Hindi">हिन्दी (Hindi)</option>
+                            <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                            <option value="Kashmiri">کٲشُر (Kashmiri)</option>
+                            <option value="Konkani">कोंकणी (Konkani)</option>
+                            <option value="Maithili">मैथिली (Maithili)</option>
+                            <option value="Malayalam">മലയാളം (Malayalam)</option>
+                            <option value="Manipuri">মেইতেই লোন (Manipuri)</option>
+                            <option value="Marathi">मराठी (Marathi)</option>
+                            <option value="Nepali">नेपाली (Nepali)</option>
+                            <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+                            <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                            <option value="Sanskrit">संस्कृतम् (Sanskrit)</option>
+                            <option value="Santali">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option>
+                            <option value="Sindhi">سنڌي (Sindhi)</option>
+                            <option value="Tamil">தமிழ் (Tamil)</option>
+                            <option value="Telugu">తెలుగు (Telugu)</option>
+                            <option value="Urdu">اُردُو (Urdu)</option>
+
+
+                        </select>
+                    </div>
+                </div>
+
+                {chats.map((chat) => {
+                    // Enhanced display name logic
+                    let displayName = '';
+                    const currentUserId = localStorage.getItem('userId');
+
+                    // Check for other users first (for regular chats)
+                    if (Array.isArray(chat.users)) {
+                        const otherUser = chat.users.find(u => u.user_id !== currentUserId);
+                        if (otherUser && otherUser.name) {
+                            displayName = otherUser.name;
+                        }
+                    }
+
+                    // If no other user name, use enhanced chat naming logic
+                    if (!displayName) {
+                        displayName = getChatDisplayName(chat) || 'AI Legal Assistant';
+                    }
+
+                    return (
+                        <div
+                            key={chat.chat_id}
+                            className={`chat-item ${chat.chat_id === chatId ? 'active' : ''}`}
+                            onClick={() => setChatId(chat.chat_id)}
+                        >
+                            <p title={displayName}>{displayName}</p>
+                            <button
+                                className="delete-chat-button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteChat(chat.chat_id);
+                                }}
+                            >
+                                <FaTrash />
+                            </button>
                         </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                </div>
-                <div className="message-input">
-                    <textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type your legal query here..."
-                        disabled={loading}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                sendMessage();
-                            }
-                        }}
-                    />
-                    <button
-                        className="send-button"
-                        onClick={sendMessage}
-                        disabled={loading || !newMessage.trim()}
-                    >
-                        {loading ? 'Sending...' : <FaPaperPlane />}
-                    </button>
-                </div>
+                    );
+                })}
+            </div>
+
+            {/* Sidebar Toggle Floating Arrow */}
+            <button
+                className={`sidebar-toggle${sidebarOpen ? ' right' : ''}`}
+                onClick={handleSidebarToggle}
+                aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+                style={{
+                    left: sidebarOpen ? 'auto' : 24,
+                    right: sidebarOpen ? 24 : 'auto'
+                }}
+            >
+                <span className="arrow-icon">
+                    {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
+                </span>
+            </button>
+
+            {/* Main Chat Area */}
+            <div className={`chat-main${!sidebarOpen ? ' sidebar-closed' : ''}`}>
+                {!chatId ? (
+                    <div className="welcome-message">
+                        <h2>Welcome to Legal Help Assistant</h2>
+                        <p>Create a new chat to start getting legal guidance and support.</p>
+                        <p>I can help you with:</p>
+                        <ul>
+                            <li>Understanding your legal rights</li>
+                            <li>Relevant IPC sections for your situation</li>
+                            <li>Steps to take for legal remedies</li>
+                            <li>Emergency contact information</li>
+                            <li>Guidance in multiple Indian languages</li>
+                        </ul>
+                    </div>
+                ) : (
+                    <>
+                        <div className="messages">
+                            {messages.map((msg, i) => (
+                                <div key={i} className={`message ${msg.sender_id === 'ai_bot' ? 'ai' : 'user'}`}>
+                                    <div className="message-content">
+                                        {msg.sender_id === 'ai_bot' ? (
+                                            <div
+                                                className="message-text ai-formatted"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: DOMPurify.sanitize(formatAIResponse(msg.message_text))
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="message-text">{msg.message_text}</div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {loading && (
+                                <div className="message ai">
+                                    <div className="message-content">
+                                        <div className="message-text typing-indicator">
+                                            <span>AI is thinking...</span>
+                                            <div className="typing-dots">
+                                                <span></span>
+                                                <span></span>
+                                                <span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+                        <div className="message-input">
+                            <textarea
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="Describe your legal concern here... (e.g., 'My landlord is harassing me' or 'I need help with domestic violence')"
+                                disabled={loading}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        sendMessage();
+                                    }
+                                }}
+                            />
+                            <button
+                                className="send-button"
+                                onClick={sendMessage}
+                                disabled={loading || !newMessage.trim()}
+                            >
+                                {loading ? 'Sending...' : <FaPaperPlane />}
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

@@ -5,6 +5,9 @@
     margin: 0 auto;
     padding: 1rem;
     box-sizing: border-box;
+    /* Add these lines if you want the list itself to scroll */
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .nyaysathi-list h1 {

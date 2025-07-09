@@ -5,7 +5,7 @@ import './FindHelp.css';
 const libraries = ['places'];
 
 const FACILITY_TYPES = [
-    { id: 'police', label: 'Police Stations', keyword: 'police station', icon: '👮‍♂️' },
+    { id: 'police', label: 'Police Stations', keyword: 'police', icon: '👮‍♂️' }, // Simplified keyword
     { id: 'ngo', label: 'NGOs', keyword: 'ngo legal aid', icon: '🏢' },
     { id: 'volunteer', label: 'Legal Aid Volunteers', keyword: 'legal aid volunteer center', icon: '🤝' },
     { id: 'court', label: 'Courts', keyword: 'court law', icon: '⚖️' },
@@ -29,8 +29,9 @@ export function FindHelp() {
     const [searchRadius, setSearchRadius] = useState(INITIAL_RADIUS);
     const [showMore, setShowMore] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
-    const [travelInfo, setTravelInfo] = useState({});  // Add this state
+    const [travelInfo, setTravelInfo] = useState({});
     const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    const [searchAttempts, setSearchAttempts] = useState(0); // Track search attempts
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -97,7 +98,6 @@ export function FindHelp() {
             }));
 
         } catch (error) {
-            console.error('Error calculating travel times:', error);
         }
     };
 
@@ -108,7 +108,11 @@ export function FindHelp() {
         }
 
         setIsSearching(true);
-        setSelectedFacility(facilityType);
+        setSelectedFacility(facilityType); // Update selected facility immediately
+        setPlaces([]); // Clear previous places to avoid flickering
+        setError(''); // Clear any previous error messages
+        setSearchAttempts(0); // Reset search attempts counter
+
         const map = new window.google.maps.Map(document.createElement('div'));
         const service = new window.google.maps.places.PlacesService(map);
         const userLatLng = new window.google.maps.LatLng(userLocation.lat, userLocation.lng);
@@ -117,57 +121,174 @@ export function FindHelp() {
         const searchQuery = facility ? facility.keyword : facilityType;
 
         try {
-            const searchNearby = (searchRadius) => {
-                return new Promise((resolve) => {
-                    service.nearbySearch({
+            // Try different search approaches based on facility type
+            if (facilityType === 'police') {
+                await searchForPoliceStations(service, userLatLng, radius);
+            } else {
+                await performRegularSearch(service, userLatLng, searchQuery, radius);
+            }
+        } catch (err) {
+            setError('Error searching for places.');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const performRegularSearch = async (service, userLatLng, searchQuery, radius) => {
+        const searchNearby = (searchRadius) => {
+            return new Promise((resolve) => {
+                service.nearbySearch({
+                    location: userLatLng,
+                    radius: searchRadius,
+                    keyword: searchQuery,
+                    openNow: filters.openNow,
+                }, (results, status) => {
+                    resolve({ results, status });
+                });
+            });
+        };
+
+        let currentRadius = radius;
+        let { results, status } = await searchNearby(currentRadius);
+
+        // Incrementally increase radius if results are insufficient
+        while ((!results || results.length < 5) && currentRadius < 200000) { // Max 200km
+            currentRadius += RADIUS_INCREMENT;
+            setSearchRadius(currentRadius);
+            const response = await searchNearby(currentRadius);
+            results = response.results;
+            status = response.status;
+        }
+
+        processSearchResults(results, status, currentRadius);
+    };
+
+    const searchForPoliceStations = async (service, userLatLng, radius) => {
+        // For police stations, try multiple search approaches
+        const searchMethods = [
+            // Method 1: Use 'police' as keyword
+            {
+                method: 'nearbySearch',
+                params: {
+                    location: userLatLng,
+                    radius: radius,
+                    keyword: 'police',
+                    openNow: filters.openNow,
+                }
+            },
+            // Method 2: Use type instead of keyword
+            {
+                method: 'nearbySearch',
+                params: {
+                    location: userLatLng,
+                    radius: radius,
+                    type: 'police',
+                    openNow: filters.openNow,
+                }
+            },
+            // Method 3: Try with a more specific keyword
+            {
+                method: 'nearbySearch',
+                params: {
+                    location: userLatLng,
+                    radius: radius,
+                    keyword: 'police station',
+                    openNow: filters.openNow,
+                }
+            },
+            // Method 4: Text search instead of nearby search
+            {
+                method: 'textSearch',
+                params: {
+                    location: userLatLng,
+                    radius: radius,
+                    query: 'police station near me',
+                }
+            }
+        ];
+
+        let results = [];
+        let status = '';
+        let currentRadius = radius;
+
+        // Try each method until we get results
+        for (const searchMethod of searchMethods) {
+            if (results.length >= 5) break;
+
+            try {
+                if (searchMethod.method === 'nearbySearch') {
+                    const response = await new Promise((resolve) => {
+                        service.nearbySearch(searchMethod.params, (results, status) => {
+                            resolve({ results, status });
+                        });
+                    });
+
+                    if (response.status === window.google.maps.places.PlacesServiceStatus.OK) {
+                        results = response.results;
+                        status = response.status;
+                    }
+                } else if (searchMethod.method === 'textSearch') {
+                    const response = await new Promise((resolve) => {
+                        service.textSearch(searchMethod.params, (results, status) => {
+                            resolve({ results, status });
+                        });
+                    });
+
+                    if (response.status === window.google.maps.places.PlacesServiceStatus.OK) {
+                        results = response.results;
+                        status = response.status;
+                    }
+                }
+            } catch (error) {
+            }
+        }
+
+        // If still no results, try with increased radius
+        if ((!results || results.length < 3) && currentRadius < 150000) {
+            currentRadius = 150000; // Try with a much larger radius
+
+            try {
+                const response = await new Promise((resolve) => {
+                    service.textSearch({
                         location: userLatLng,
-                        radius: searchRadius,
-                        keyword: filters.keyword || searchQuery,
-                        openNow: filters.openNow,
+                        radius: currentRadius,
+                        query: 'police station',
                     }, (results, status) => {
                         resolve({ results, status });
                     });
                 });
-            };
 
-            let currentRadius = radius;
-            let { results, status } = await searchNearby(currentRadius);
+                if (response.status === window.google.maps.places.PlacesServiceStatus.OK) {
+                    results = response.results;
+                    status = response.status;
+                }
+            } catch (error) {
+            }
+        }
 
-            // If less than 5 results, incrementally increase radius
-            while ((!results || results.length < 5) && currentRadius < 200000) { // Max 200km
-                currentRadius += RADIUS_INCREMENT;
-                setSearchRadius(currentRadius);
-                const response = await searchNearby(currentRadius);
-                results = response.results;
-                status = response.status;
+        processSearchResults(results, status, currentRadius);
+    };
+
+    const processSearchResults = (results, status, currentRadius) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+            const filteredResults = results.filter(place => place.rating >= filters.minRating);
+            setPlaces(filteredResults);
+
+            // Calculate travel times for each place
+            for (const place of filteredResults) {
+                calculateTravelTimes(place);
             }
 
-            if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                const filteredResults = results.filter(place => place.rating >= filters.minRating);
-                setPlaces(filteredResults);
+            setShowMore(filteredResults.length > RESULTS_PER_PAGE);
+            setSelectedPlace(null);
+            setDirections(null);
 
-                // Calculate travel times for each place
-                for (const place of filteredResults) {
-                    await calculateTravelTimes(place);
-                }
-
-                setShowMore(filteredResults.length > RESULTS_PER_PAGE);
-                setSelectedPlace(null);
-                setDirections(null);
-
-                if (currentRadius > INITIAL_RADIUS) {
-                    setError(`No results found within ${INITIAL_RADIUS / 1000}km. Showing results within ${currentRadius / 1000}km.`);
-                } else {
-                    setError('');
-                }
-            } else {
-                setError('Failed to fetch nearby places.');
+            if (currentRadius > INITIAL_RADIUS) {
+                setError(`No results found within ${INITIAL_RADIUS / 1000}km. Showing results within ${currentRadius / 1000}km.`);
             }
-        } catch (err) {
-            setError('Error searching for places.');
-            console.error(err);
-        } finally {
-            setIsSearching(false);
+        } else {
+            setError('No results found for the selected facility. Please try a different location or facility type.');
+            setPlaces([]);
         }
     };
 
@@ -192,7 +313,6 @@ export function FindHelp() {
             setDirections(result);
             setSelectedPlace(null); // Hide the info window when showing directions
         } catch (error) {
-            console.error('Error calculating route:', error);
             setError('Failed to calculate route. Please try again.');
         }
     };
@@ -207,7 +327,7 @@ export function FindHelp() {
 
     const handleSort = (places) => {
         if (sortBy === 'rating') {
-            return [...places].sort((a, b) => b.rating - a.rating);
+            return [...places].sort((a, b) => (b.rating || 0) - (a.rating || 0));
         }
         return places;
     };
@@ -217,19 +337,20 @@ export function FindHelp() {
     };
 
     const renderPlacesList = () => {
-        const displayedPlaces = showMore ? places : places.slice(0, RESULTS_PER_PAGE);
+        const sortedPlaces = handleSort(places);
+        const displayedPlaces = showMore ? sortedPlaces : sortedPlaces.slice(0, RESULTS_PER_PAGE);
 
         return (
             <>
                 {displayedPlaces.map((place, index) => (
                     <div
                         key={index}
-                        className="list-item"
+                        className={`list-item ${selectedFacility ? 'active' : ''}`} // Highlight active facility
                         onMouseEnter={() => handleHover(place)}
                     >
                         <h3>{place.name}</h3>
                         <div className="list-item-details">
-                            <p>{place.vicinity}</p>
+                            <p>{place.vicinity || place.formatted_address}</p>
                             <p>Rating: {place.rating ? `${place.rating} ⭐` : 'N/A'}</p>
                             <p>{place.opening_hours?.open_now ? '✅ Open Now' : '❌ Closed'}</p>
 
@@ -407,7 +528,7 @@ export function FindHelp() {
                                 >
                                     <div>
                                         <h3>{selectedPlace.name}</h3>
-                                        <p>{selectedPlace.vicinity}</p>
+                                        <p>{selectedPlace.vicinity || selectedPlace.formatted_address}</p>
                                         <p>Rating: {selectedPlace.rating || 'N/A'}</p>
                                     </div>
                                 </InfoWindow>

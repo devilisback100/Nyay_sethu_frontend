@@ -60,18 +60,39 @@ export function AboutUs() {
                 <div className="container">
                     <h2 className="section-title fade-in">Our Leadership Team</h2>
                     <div className="team-grid">
-                        {[1, 2, 3].map((member) => (
-                            <div key={member} className="team-card fade-in">
-                                <div className="member-image">
-                                    <img src={`https://via.placeholder.com/200`} alt="Team member" />
-                                </div>
-                                <div className="member-info">
-                                    <h3>Name Surname</h3>
-                                    <p className="position">Position</p>
-                                    <p className="bio">Brief description about the team member and their role in NyaySathi.</p>
-                                </div>
+                        <div className="team-card fade-in">
+                            <div className="member-image">
+                                <img style={{rotate:"7.3deg"}} className='About_us_profile_img' src="../profile_photo.png" alt="Suresh Paliwal" />
                             </div>
-                        ))}
+                            <div className="member-info">
+                                <h3>Suresh Paliwal</h3>
+                                <p className="position">Full Stack Developer & Product Architect</p>
+                                <p className="bio">
+                                    B.Tech AIML Student | Full Stack & AI Developer. Developed the NyaySathi frontend and backend integration, and contributed to AI module enhancement including chatbot improvement, FAISS optimization, and smart legal suggestion flows.
+                                </p>
+
+                                <p>
+                                    <a href="https://www.linkedin.com/in/suresh-paliwal-a75a41266/" target="_blank" rel="noopener noreferrer">LinkedIn</a> |{' '}
+                                    <a href="https://suresh-portfolio-webapp.vercel.app/" target="_blank" rel="noopener noreferrer">Portfolio</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="team-card fade-in">
+                            <div className="member-image">
+                                <img className='About_us_profile_img' src="../sumit_profile.jpg" alt="Sumit Kumar" / >
+                            </div>
+                            <div className="member-info">
+                                <h3>Sumit Kumar</h3>
+                                <p className="position">AI & Backend Lead</p>
+                                <p className="bio">
+                                    Leads the backend and AI logic of NyaySathi including RAG pipelines, FAISS integration, Neo4j-based reasoning, and Gemini-powered chatbot logic. Focused on making legal assistance smarter and scalable.
+                                </p>
+                                <p>
+                                    <a href="http://www.linkedin.com/in/sumit-kumar-5b4344301" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -81,15 +102,15 @@ export function AboutUs() {
                     <h2 className="section-title fade-in">Our Impact</h2>
                     <div className="stats-grid">
                         <div className="stat-item fade-in">
-                            <h3>50,000+</h3>
+                            <h3>8000+</h3>
                             <p>People Helped</p>
                         </div>
                         <div className="stat-item fade-in">
-                            <h3>95%</h3>
+                            <h3>99%</h3>
                             <p>Success Rate</p>
                         </div>
                         <div className="stat-item fade-in">
-                            <h3>1000+</h3>
+                            <h3>50+</h3>
                             <p>Legal Experts</p>
                         </div>
                     </div>

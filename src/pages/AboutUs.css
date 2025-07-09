@@ -86,11 +86,7 @@
     box-shadow: var(--shadow-lg);
 }
 
-.member-image img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-}
+
 
 .member-info {
     padding: 1.5rem;
@@ -175,4 +171,161 @@
     .stat-item h3 {
         font-size: 2.5rem;
     }
+}
+
+/* Enhanced About Us Profile Image Styles */
+.About_us_profile_img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 3px solid var(--surface-light, #801be5);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        0 4px 8px rgba(0, 0, 0, 0.08),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: block;
+    margin: 0 auto 1.5rem auto;
+    position: relative;
+    background: var(--bg-light, #f8f9fa);
+    padding-top: 2px;
+}
+
+.About_us_profile_img:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.16),
+        0 8px 16px rgba(0, 0, 0, 0.12),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    border-color: var(--primary, #007bff);
+}
+
+/* Integration with team cards */
+.team-card .About_us_profile_img {
+    margin: 2rem auto 1rem auto;
+    border-color: rgba(255, 255, 255, 0.8);
+    position: relative;
+}
+
+.team-card:hover .About_us_profile_img {
+    border-color: var(--primary, #007bff);
+    transform: scale(1.05) translateY(-3px);
+}
+
+/* Alternative gradient ring style */
+.About_us_profile_img.gradient-ring {
+    border: none;
+    position: relative;
+    padding: 4px;
+    background: linear-gradient(135deg, var(--primary, #007bff), var(--accent, #6c5ce7));
+    border-radius: 50%;
+}
+
+.About_us_profile_img.gradient-ring::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    background: var(--surface-light, #ffffff);
+    border-radius: 50%;
+    z-index: -1;
+}
+
+/* Glowing effect variant */
+.About_us_profile_img.glow-effect {
+    position: relative;
+}
+
+.About_us_profile_img.glow-effect::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    background: linear-gradient(135deg, var(--primary, #007bff), var(--accent, #6c5ce7));
+    border-radius: 50%;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+    filter: blur(8px);
+}
+
+.About_us_profile_img.glow-effect:hover::after {
+    opacity: 0.4;
+}
+
+/* Professional variant with subtle animations */
+.About_us_profile_img.professional {
+    border: 2px solid var(--bg-card, #ffffff);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.4s ease;
+}
+
+.About_us_profile_img.professional:hover {
+    transform: scale(1.06);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.14),
+        0 4px 8px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary, #007bff);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .About_us_profile_img {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1rem;
+    }
+
+    .team-card .About_us_profile_img {
+        margin: 1.5rem auto 1rem auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .About_us_profile_img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 0.75rem;
+    }
+
+    .team-card .About_us_profile_img {
+        margin: 1rem auto 0.75rem auto;
+    }
+}
+
+/* Loading placeholder */
+.About_us_profile_img.loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Additional enhancement for better visual hierarchy */
+.member-info .About_us_profile_img+h3 {
+    margin-top: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.member-info .About_us_profile_img+h3+.position {
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
 }

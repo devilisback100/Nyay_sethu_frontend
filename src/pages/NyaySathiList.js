@@ -9,33 +9,20 @@ export function NyaySathiList() {
 
     useEffect(() => {
         const fetchNyaySathis = async () => {
-            const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
-            const adminEmail = process.env.REACT_APP_ADMIN_EMAIL;
-            const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD;
-
-            if (!adminEmail || !adminPassword) {
-                console.error('Admin credentials are missing in the .env file.');
-                setLoading(false);
-                return;
-            }
+            const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ;
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/auth/admin/nyaysathi/all`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: adminEmail, password: adminPassword })
+                const response = await fetch(`${BACKEND_URL}/api/auth/nyaysathi/all`, {
+                    method: 'GET'
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Fetched NyaySathis:", data);
                     setNyaySathis(data);
                     localStorage.setItem('nyaySathis', JSON.stringify(data));
                 } else {
-                    console.error('Failed to fetch NyaySathi list. Status:', response.status);
                 }
             } catch (error) {
-                console.error('Error fetching NyaySathi list:', error);
             } finally {
                 setLoading(false);
             }
@@ -88,3 +75,4 @@ export function NyaySathiList() {
         </div>
     );
 }
+  
