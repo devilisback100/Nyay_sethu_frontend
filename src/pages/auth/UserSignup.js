@@ -47,6 +47,11 @@ export function UserSignup({ onBack }) {
         }
     }, [formData.state, API_KEY]);
 
+    const triggerAuthStateChange = () => {
+        const event = new CustomEvent('authStateChanged');
+        window.dispatchEvent(event);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -79,10 +84,11 @@ export function UserSignup({ onBack }) {
                     localStorage.setItem('userType', 'user');
                     localStorage.setItem('email', formData.email);
                     localStorage.setItem('password', formData.password);
-                    setSuccess('Account created successfully! Redirecting to your profile...');
+                    triggerAuthStateChange(); // Trigger auth state change event
+                    setSuccess('Account created successfully! Redirecting to your chatbot');
                     setError('');
                     setTimeout(() => {
-                        window.location.href = '/profile';
+                        window.location.href = '/legal-help'; // Redirect to the legal help page
                     }, 2000);
                 } else {
                     setError('Account created, but failed to log in. Please sign in manually.');

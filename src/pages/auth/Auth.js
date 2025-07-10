@@ -10,7 +10,10 @@ export function Auth() {
     const [authMode, setAuthMode] = useState('signin');
     const [loginData, setLoginData] = useState({ email: '', password: '' });
     const navigate = useNavigate();
-
+    const triggerAuthStateChange = () => {
+        const event = new CustomEvent('authStateChanged');
+        window.dispatchEvent(event);
+    };
     const handleLogin = async (e) => {
         e.preventDefault();
         const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ;
@@ -42,10 +45,10 @@ export function Auth() {
                 localStorage.setItem('userType', userType);
                 localStorage.setItem('preferred_language', decoded.preferred_language || 'english');
                 localStorage.setItem('location', decoded.location?.city || 'unknown');
-
+triggerAuthStateChange();
               
 
-                navigate('/profile');
+                navigate('/legal-help');
             } else {
                 const err = await response.text();
                 alert('Invalid email or password.');

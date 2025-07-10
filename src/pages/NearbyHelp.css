@@ -62,7 +62,7 @@
     font-size: 1.05rem;
     background: var(--surface-light, #f8fafc);
     color: var(--text, #22223b);
-    box-shadow: 0 2px 8px 0 rgba(37,99,235,0.06);
+    box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.06);
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 

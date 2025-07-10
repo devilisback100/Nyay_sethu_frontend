@@ -142,7 +142,10 @@ export function NyaySathiSignup({ onBack }) {
 
     const nextStep = () => setStep(step + 1);
     const prevStep = () => setStep(step - 1);
-
+    const triggerAuthStateChange = () => {
+        const event = new CustomEvent('authStateChanged');
+        window.dispatchEvent(event);
+    };
     const renderCategorySelection = () => (
         <div className="category-selection">
             <h3>Select Your Category</h3>
@@ -367,14 +370,42 @@ export function NyaySathiSignup({ onBack }) {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userType', 'nyaysathi');
-                localStorage.setItem('email', formData.email);
-                setSuccess('NyaySathi account created successfully! You can check the status of your verification in a few hours by logging into this website.');
-                setError('');
-                setTimeout(() => {
-                    window.location.href = '/profile'; // Redirect to NyaySathi profile
-                }, 3000); // Wait for 3 seconds before redirecting
+
+                // Now log the user in to get the token (similar to User signup)
+                const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        password: formData.password,
+                    }),
+                });
+
+                if (loginRes.ok) {
+                    const loginData = await loginRes.json();
+                    // Store token and user info
+                    localStorage.setItem('token', loginData.token);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userType', 'nyaysathi');
+                    localStorage.setItem('email', formData.email);
+                    localStorage.setItem('password', formData.password);
+                    triggerAuthStateChange(); // Trigger auth state change event
+                    setSuccess('NyaySathi account created successfully! You can check the status of your verification in a few hours by logging into this website.');
+                    setError('');
+                    setTimeout(() => {
+                        window.location.href = '/profile'; // Redirect to NyaySathi profile
+                    }, 3000); // Wait for 3 seconds before redirecting
+                } else {
+                    // Account created but login failed
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userType', 'nyaysathi');
+                    localStorage.setItem('email', formData.email);
+                    setSuccess('NyaySathi account created successfully! Please sign in manually to access your profile.');
+                    setError('');
+                    setTimeout(() => {
+                        window.location.href = '/signin'; // Redirect to sign in page
+                    }, 3000);
+                }
             } else {
                 const data = await response.json();
                 setError(data.error || 'Failed to create account.');

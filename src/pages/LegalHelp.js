@@ -123,11 +123,6 @@ const formatAIResponse = (text) => {
     return formattedText;
 };
 
-// Utility to generate a temporary chat id
-function generateTempChatId() {
-    return 'temp-' + Date.now();
-}
-
 export function LegalHelp() {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -138,7 +133,7 @@ export function LegalHelp() {
     const [preferredLanguage, setPreferredLanguage] = useState('English');
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [chatsLoaded, setChatsLoaded] = useState(false);
-    const [autoCreateAttempted, setAutoCreateAttempted] = useState(false);
+    const [isCreatingChat, setIsCreatingChat] = useState(false);
     const messagesEndRef = useRef(null);
 
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -229,16 +224,22 @@ export function LegalHelp() {
             setChats(chatsWithMessages);
             setChatsLoaded(true);
         } catch (err) {
+            console.error('Error fetching chats:', err);
             setChatsLoaded(true);
         }
     };
 
     const createNewChat = async () => {
+        if (isCreatingChat) return null; // Prevent multiple simultaneous creations
+
+        setIsCreatingChat(true);
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
+
         if (!token) {
             localStorage.clear();
             navigate('/auth');
+            setIsCreatingChat(false);
             return null;
         }
 
@@ -260,6 +261,7 @@ export function LegalHelp() {
             if (response.status === 401) {
                 localStorage.clear();
                 navigate('/auth');
+                setIsCreatingChat(false);
                 return null;
             }
 
@@ -276,86 +278,93 @@ export function LegalHelp() {
             setChats((prev) => [newChat, ...prev]);
             setChatId(data.chat_id);
             setMessages([]);
+            setIsCreatingChat(false);
 
             return data.chat_id;
         } catch (err) {
             console.error('Error creating new chat:', err);
+            setIsCreatingChat(false);
             return null;
         }
     };
 
-    // Auto-create new chat when component mounts
-    useEffect(() => {
-        // Only auto-create if chats are loaded, not already attempted, and there are no chats
-        if (chatsLoaded && !autoCreateAttempted) {
-            setAutoCreateAttempted(true);
+    // Create chat only when user sends first message
+    const createChatOnFirstMessage = async () => {
+        if (isCreatingChat) return null;
 
-            // Create a temp chat for instant UI feedback
-            const tempId = generateTempChatId();
-            const tempChat = {
-                chat_id: tempId,
+        setIsCreatingChat(true);
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+
+        if (!token) {
+            localStorage.clear();
+            navigate('/auth');
+            setIsCreatingChat(false);
+            return null;
+        }
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/chats/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    is_ai_chat: true,
+                    user_id: userId,
+                    messages: [],
+                    status: 'active',
+                }),
+            });
+
+            if (response.status === 401) {
+                localStorage.clear();
+                navigate('/auth');
+                setIsCreatingChat(false);
+                return null;
+            }
+
+            if (!response.ok) throw new Error('Failed to create new chat');
+
+            const data = await response.json();
+            const newChat = {
+                chat_id: data.chat_id,
                 is_ai_chat: true,
                 messages: [],
                 created_at: new Date().toISOString()
             };
-            setChats([tempChat]);
-            setChatId(tempId);
-            setMessages([]);
 
-            // Create real chat in backend and replace temp chat
-            (async () => {
-                const token = localStorage.getItem('token');
-                const userId = localStorage.getItem('userId');
-                if (!token) {
-                    localStorage.clear();
-                    navigate('/auth');
-                    return;
-                }
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/chats/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            is_ai_chat: true,
-                            user_id: userId,
-                            messages: [],
-                            status: 'active',
-                        }),
-                    });
-                    if (response.status === 401) {
-                        localStorage.clear();
-                        navigate('/auth');
-                        return;
-                    }
-                    if (!response.ok) throw new Error('Failed to create new chat');
-                    const data = await response.json();
-                    const realChat = {
-                        chat_id: data.chat_id,
-                        is_ai_chat: true,
-                        messages: [],
-                        created_at: new Date().toISOString()
-                    };
-                    setChats((prev) => [realChat, ...prev.filter(c => c.chat_id !== tempId)]);
-                    setChatId(data.chat_id);
-                } catch (err) {
-                    // Optionally handle error
-                }
-            })();
+            // Update chats list and set current chat
+            setChats((prev) => [newChat, ...prev]);
+            setChatId(data.chat_id);
+            setIsCreatingChat(false);
+
+            return data.chat_id;
+        } catch (err) {
+            console.error('Error creating chat on first message:', err);
+            setIsCreatingChat(false);
+            return null;
         }
-        // No else/return: allow sending messages or starting new chat at any time
-    }, [chatsLoaded, autoCreateAttempted, chats.length]);
+    };
 
-    // Load chats on component mount
+    // Load chats on component mount - NO AUTO-CREATE
     useEffect(() => {
         const initializeChats = async () => {
             await fetchChats();
         };
-
         initializeChats();
     }, [BACKEND_URL, navigate]);
+
+    // Set initial chat when chats are loaded
+    useEffect(() => {
+        if (chatsLoaded && chats.length > 0 && !chatId) {
+            // If there are existing chats, select the first one
+            const firstChat = chats[0];
+            setChatId(firstChat.chat_id);
+            fetchMessages(firstChat.chat_id);
+        }
+    }, [chatsLoaded, chats, chatId]);
 
     const fetchMessages = async (chatId) => {
         const token = localStorage.getItem('token');
@@ -379,9 +388,7 @@ export function LegalHelp() {
 
     const sendMessage = async () => {
         if (!newMessage.trim()) return;
-        if (!chatId) {
-            return;
-        }
+        if (loading || isCreatingChat) return;
 
         const token = localStorage.getItem('token');
         if (!token) {
@@ -392,6 +399,16 @@ export function LegalHelp() {
 
         const userId = localStorage.getItem('userId');
         const userMessage = newMessage.trim();
+
+        // If no current chat, create one first
+        let currentChatId = chatId;
+        if (!currentChatId) {
+            currentChatId = await createChatOnFirstMessage();
+            if (!currentChatId) {
+                console.error('Failed to create chat');
+                return;
+            }
+        }
 
         const message = {
             sender_id: userId,
@@ -407,7 +424,7 @@ export function LegalHelp() {
 
         try {
             // Save the user message to backend
-            const saveMessageResponse = await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+            const saveMessageResponse = await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -456,7 +473,7 @@ export function LegalHelp() {
                 setMessages((prev) => [...prev, aiMessage]);
 
                 try {
-                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -465,8 +482,10 @@ export function LegalHelp() {
                         body: JSON.stringify(aiMessage),
                     });
 
-                    // Update chat list with new messages for better naming
-                    fetchChats();
+                    // Only refresh chats if this is the first message (to update chat name)
+                    if (messages.length === 0) {
+                        await fetchChats();
+                    }
                 } catch (saveError) {
                     console.error('Error saving AI message:', saveError);
                 }
@@ -480,7 +499,7 @@ export function LegalHelp() {
                 setMessages((prev) => [...prev, errorMessage]);
 
                 try {
-                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -505,7 +524,7 @@ export function LegalHelp() {
             setMessages((prev) => [...prev, errorMessage]);
 
             try {
-                await fetch(`${BACKEND_URL}/api/chats/messages/add/${chatId}`, {
+                await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -532,18 +551,28 @@ export function LegalHelp() {
             if (!response.ok) throw new Error('Failed to delete chat');
 
             setChats((prev) => prev.filter((chat) => chat.chat_id !== chatIdToDelete));
+
             if (chatIdToDelete === chatId) {
-                // Create a new chat when current chat is deleted
-                await createNewChat();
+                // If deleting current chat, reset chat state
+                setChatId(null);
+                setMessages([]);
+
+                // If there are other chats, select the first one
+                const remainingChats = chats.filter((chat) => chat.chat_id !== chatIdToDelete);
+                if (remainingChats.length > 0) {
+                    setChatId(remainingChats[0].chat_id);
+                    fetchMessages(remainingChats[0].chat_id);
+                }
             }
         } catch (err) {
             console.error('Error deleting chat:', err);
         }
     };
 
-    useEffect(() => {
-        if (chatId) fetchMessages(chatId);
-    }, [chatId]);
+    const handleChatSelection = (selectedChatId) => {
+        setChatId(selectedChatId);
+        fetchMessages(selectedChatId);
+    };
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -564,8 +593,12 @@ export function LegalHelp() {
 
             {/* Sidebar */}
             <div className={`chat-sidebar${sidebarOpen ? ' open' : ''}`} style={{ transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)' }}>
-                <button className="new-chat-button" onClick={createNewChat}>
-                    <FaPlus /> New Chat
+                <button
+                    className="new-chat-button"
+                    onClick={createNewChat}
+                    disabled={isCreatingChat}
+                >
+                    <FaPlus /> {isCreatingChat ? 'Creating...' : 'New Chat'}
                 </button>
 
                 {/* Settings section */}
@@ -636,7 +669,7 @@ export function LegalHelp() {
                         <div
                             key={chat.chat_id}
                             className={`chat-item ${chat.chat_id === chatId ? 'active' : ''}`}
-                            onClick={() => setChatId(chat.chat_id)}
+                            onClick={() => handleChatSelection(chat.chat_id)}
                         >
                             <p title={displayName}>{displayName}</p>
                             <button
@@ -661,7 +694,8 @@ export function LegalHelp() {
                 style={{
                     left: sidebarOpen ? 'auto' : 24,
                     right: sidebarOpen ? 24 : 'auto',
-                    top:'11%'                }}
+                    top: '11%'
+                }}
             >
                 <span className="arrow-icon">
                     {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
@@ -670,8 +704,8 @@ export function LegalHelp() {
 
             {/* Main Chat Area */}
             <div className={`chat-main${!sidebarOpen ? ' sidebar-closed' : ''}`}>
-                {/* Show welcome message at the top if there are no messages yet */}
-                {chatsLoaded && messages.length === 0 && (
+                {/* Show welcome message when no chat is selected or no messages */}
+                {chatsLoaded && (!chatId || messages.length === 0) && (
                     <div className="welcome-message">
                         <h2>Welcome to Legal Help Assistant</h2>
                         <p>I can help you with:</p>
@@ -682,15 +716,20 @@ export function LegalHelp() {
                             <li>Emergency contact information</li>
                             <li>Guidance in multiple Indian languages</li>
                         </ul>
+                        {!chatId && (
+                            <p><strong>Start typing your legal question below to begin a new conversation.</strong></p>
+                        )}
                     </div>
                 )}
+
                 {/* Show loading message only if chats are not loaded yet */}
                 {!chatsLoaded && (
                     <div className="welcome-message">
                         <h2>Welcome to Legal Help Assistant</h2>
-                        <p>Setting up your new chat...</p>
+                        <p>Loading your conversations...</p>
                     </div>
                 )}
+
                 {/* Chat messages and input */}
                 {chatsLoaded && (
                     <>
@@ -732,23 +771,22 @@ export function LegalHelp() {
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 placeholder="Describe your legal concern here"
-                                disabled={loading}
+                                disabled={loading || isCreatingChat}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
                                         sendMessage();
                                     }
                                 }}
-                        
-                                style={{display:"flex"}}
+                                style={{ display: "flex" }}
                             />
                             <button
                                 className="send-button"
                                 onClick={sendMessage}
-                                disabled={loading || !newMessage.trim()}
-                                style={{backgroundColor:"purple",opacity:"1",alignSelf:"center",scale:"1.08"}}
+                                disabled={loading || !newMessage.trim() || isCreatingChat}
+                                style={{ backgroundColor: "purple", opacity: "1", alignSelf: "center", scale: "1.08" }}
                             >
-                                {loading ? 'Sending...' :<div style={{color:"white",width:"100%"}} > <   IoMdSend /> </div>}
+                                {loading ? 'Sending...' : isCreatingChat ? 'Creating...' : <div style={{ color: "white", width: "100%" }}><IoMdSend /></div>}
                             </button>
                         </div>
                     </>

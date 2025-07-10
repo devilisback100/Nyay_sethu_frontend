@@ -7,7 +7,7 @@ export function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userType, setUserType] = useState(null);
 
-    useEffect(() => {
+    const checkAuthStatus = () => {
         const email = localStorage.getItem('email');
         const password = localStorage.getItem('password');
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -17,14 +17,32 @@ export function Navbar() {
             setUserType(localStorage.getItem('userType'));
         } else {
             setIsLoggedIn(false);
+            setUserType(null);
         }
+    };
+
+    useEffect(() => {
+        // Check auth status on mount
+        checkAuthStatus();
+
+        // Listen for custom auth events
+        const handleAuthChange = () => {
+            checkAuthStatus();
+        };
+
+        window.addEventListener('authStateChanged', handleAuthChange);
+
+        // Cleanup listener on unmount
+        return () => {
+            window.removeEventListener('authStateChanged', handleAuthChange);
+        };
     }, []);
 
     const handleLogout = () => {
         localStorage.clear();
         setIsLoggedIn(false);
-        setUserType(null); // Clear user type
-        window.location.href = '/auth'; // Redirect to the Auth page
+        setUserType(null);
+        window.location.href = '/auth';
     };
 
     const toggleMenu = () => {
@@ -84,4 +102,3 @@ const NavLink = ({ to, children, onClick, className }) => (
         {children}
     </Link>
 );
-
