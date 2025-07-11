@@ -16,6 +16,7 @@ import { FindHelp } from './pages/FindHelp';
 import { DirectChat } from './pages/DirectChat';
 import { AppointmentSchedule } from './pages/appointments/AppointmentSchedule';
 import { CaseQuery } from './pages/CaseQuery';
+import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
 
@@ -96,6 +97,7 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
+          <Analytics />
         </div>
       </BrowserRouter>
     </ErrorBoundary>
