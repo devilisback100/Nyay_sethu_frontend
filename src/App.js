@@ -1,4 +1,4 @@
-import React,{useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -44,7 +44,7 @@ class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
-  
+
   render() {
     if (this.state.hasError) {
       return <h1>Something went wrong. Please try again later.</h1>;
@@ -57,9 +57,9 @@ class ErrorBoundary extends React.Component {
 function App() {
   useEffect(() => {
     document.body.style.overflow = 'auto';
-    document.body.style.scrollBehavior="none";
+    document.body.style.scrollBehavior = "none";
   }, []);
-  
+
   return (
     <ErrorBoundary>
       <BrowserRouter>

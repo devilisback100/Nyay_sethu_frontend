@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaUser, FaEnvelope, FaLock, FaMapMarkerAlt } from 'react-icons/fa';
 import { TermsAndConditions } from '../../components/TermsAndConditions';
 
 // eslint-disable-next-line no-unused-vars
@@ -9,7 +9,7 @@ export function UserSignup({ onBack }) {
         name: '',
         email: '',
         password: '',
-        phone: '',
+        phone: '', // keep in state, but not shown in UI
         state: '',
         district: '',
     });
@@ -61,6 +61,7 @@ export function UserSignup({ onBack }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
+                    phone: '', // always send empty string for phone
                     location: { state: formData.state, city: formData.district },
                 }),
             });
@@ -156,16 +157,7 @@ export function UserSignup({ onBack }) {
                             required
                         />
                     </div>
-                    <div className="form-group">
-                        <label><FaPhone className="input-icon" /> Phone Number</label>
-                        <input
-                            type="tel"
-                            placeholder="Enter your phone number"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            required
-                        />
-                    </div>
+                    {/* Phone field removed */}
                     <div className="form-group">
                         <label><FaMapMarkerAlt className="input-icon" /> State</label>
                         <select
@@ -209,4 +201,7 @@ export function UserSignup({ onBack }) {
             />
         </div>
     );
+
+
+
 }

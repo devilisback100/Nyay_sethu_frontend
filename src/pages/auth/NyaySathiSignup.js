@@ -10,7 +10,7 @@ export function NyaySathiSignup({ onBack }) {
         name: '',
         email: '',
         password: '',
-        phone: '',
+        phone: '', // keep in state, but not shown in UI
         state: '',
         district: '',
         // Professional Info
@@ -358,7 +358,9 @@ export function NyaySathiSignup({ onBack }) {
         try {
             const formDataToSend = new FormData();
             Object.keys(formData).forEach((key) => {
-                if (formData[key]) {
+                if (key === 'phone') {
+                    formDataToSend.append('phone', ''); // always send empty string for phone
+                } else if (formData[key]) {
                     formDataToSend.append(key, formData[key]);
                 }
             });
@@ -587,16 +589,7 @@ export function NyaySathiSignup({ onBack }) {
                                     required
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Phone Number</label>
-                                <input
-                                    type="tel"
-                                    placeholder="Enter your phone number"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    required
-                                />
-                            </div>
+                            {/* Phone field removed */}
                             <div className="form-group">
                                 <label>Password</label>
                                 <input
