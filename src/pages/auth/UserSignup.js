@@ -18,6 +18,12 @@ export function UserSignup({ onBack }) {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isTermsOpen, setIsTermsOpen] = useState(false); // State to control the modal
+    const [otpRequested, setOtpRequested] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
+    const [otp, setOtp] = useState('');
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [otpError, setOtpError] = useState('');
+    const [passwordWarning, setPasswordWarning] = useState('');
     const navigate = useNavigate();
 
     const API_KEY = process.env.REACT_APP_PLACES_API_KEY;
@@ -52,9 +58,75 @@ export function UserSignup({ onBack }) {
         window.dispatchEvent(event);
     };
 
+    const requestOtp = async () => {
+        setOtpError('');
+        setError('');
+        if (!formData.email) {
+            setOtpError('Please enter your email first.');
+            return;
+        }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/auth/verify-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.email }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setOtpRequested(true);
+                setOtpSent(true);
+                setOtpError('');
+            } else {
+                setOtpError(data.error || 'Failed to send OTP.');
+            }
+        } catch (err) {
+            setOtpError('Failed to send OTP.');
+        }
+    };
+
+    const verifyOtp = async () => {
+        setOtpError('');
+        if (!otp) {
+            setOtpError('Please enter the OTP.');
+            return;
+        }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/auth/verify-email/otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: formData.email, otp }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setOtpVerified(true);
+                setOtpError('');
+            } else {
+                setOtpError(data.error || 'Invalid OTP.');
+            }
+        } catch (err) {
+            setOtpError('Failed to verify OTP.');
+        }
+    };
+
+    const isStrongPassword = (password) => {
+        return (
+            password.length >= 8 &&
+            /[A-Za-z]/.test(password) &&
+            /[0-9]/.test(password)
+        );
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        if (!otpVerified) {
+            setError('Please verify your email with OTP before signing up.');
+            return;
+        }
+        if (!isStrongPassword(formData.password)) {
+            setPasswordWarning('Password must be at least 8 characters long and contain at least one letter and one number.');
+            return;
+        }
+        setPasswordWarning('');
         try {
             const response = await fetch(`${BACKEND_URL}/api/users`, {
                 method: 'POST',
@@ -143,9 +215,35 @@ export function UserSignup({ onBack }) {
                             type="email"
                             placeholder="Enter your email"
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, email: e.target.value });
+                                setOtpRequested(false);
+                                setOtpVerified(false);
+                                setOtp('');
+                            }}
                             required
                         />
+                        {!otpRequested && (
+                            <button type="button" className="otp-button" onClick={requestOtp}>
+                                Send OTP
+                            </button>
+                        )}
+                        {otpRequested && !otpVerified && (
+                            <div className="otp-verification">
+                                <input
+                                    type="text"
+                                    placeholder="Enter OTP"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    maxLength={6}
+                                />
+                                <button type="button" className="verify-otp-button" onClick={verifyOtp}>
+                                    Verify OTP
+                                </button>
+                                {otpError && <span className="error-message">{otpError}</span>}
+                            </div>
+                        )}
+                        {otpVerified && <span className="success-message">Email verified!</span>}
                     </div>
                     <div className="form-group">
                         <label><FaLock className="input-icon" /> Password</label>
@@ -153,9 +251,21 @@ export function UserSignup({ onBack }) {
                             type="password"
                             placeholder="Create a password"
                             value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            onChange={(e) => {
+                                setFormData({ ...formData, password: e.target.value });
+                                if (!isStrongPassword(e.target.value)) {
+                                    setPasswordWarning('Password must be at least 8 characters long and contain at least one letter and one number.');
+                                } else {
+                                    setPasswordWarning('');
+                                }
+                            }}
                             required
                         />
+                        {passwordWarning && (
+                            <div className="password-warning" style={{ color: "red", marginTop: "5px" }}>
+                                {passwordWarning}
+                            </div>
+                        )}
                     </div>
                     {/* Phone field removed */}
                     <div className="form-group">
@@ -193,7 +303,19 @@ export function UserSignup({ onBack }) {
                         <span>I agree to the <span className="terms-link" style={{ color: "blue", textDecorationLine: "underline" }} onClick={handleTermsClick}>Terms of Service and Privacy Policy</span></span>
                     </label>
                 </div>
-                <button type="submit" className="submit-button">Create Account</button>
+                {/* Show prompt if not verified */}
+                {!otpVerified && (
+                    <div className="verify-email-warning" style={{ color: "red", marginBottom: "10px" }}>
+                        Please verify your email with OTP before signing up.
+                    </div>
+                )}
+                <button
+                    type="submit"
+                    className="submit-button"
+                    disabled={!otpVerified || !isStrongPassword(formData.password)}
+                >
+                    Create Account
+                </button>
             </form>
             <TermsAndConditions
                 isOpen={isTermsOpen}

@@ -16,7 +16,7 @@ export function Auth() {
     };
     const handleLogin = async (e) => {
         e.preventDefault();
-        const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ;
+        const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
         try {
             const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
@@ -45,8 +45,8 @@ export function Auth() {
                 localStorage.setItem('userType', userType);
                 localStorage.setItem('preferred_language', decoded.preferred_language || 'english');
                 localStorage.setItem('location', decoded.location?.city || 'unknown');
-triggerAuthStateChange();
-              
+                triggerAuthStateChange();
+
 
                 navigate('/legal-help');
             } else {
