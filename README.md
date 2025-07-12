@@ -15,7 +15,7 @@ NyaySathi – where technology meets justice.
 ---
 
 ## 🌐 Live Links
-- 🚀 **Frontend:** [nyay-sathi.vercel.app](https://www.nyaysethu.online/)
+- 🚀 **Frontend:** [https://www.nyaysethu.online/](https://www.nyaysethu.online/)
 - 🧠 **Backend API:** Hosted via Render / HuggingFace Spaces
 
 ---
