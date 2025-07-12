@@ -856,9 +856,10 @@ select:focus-visible {
 
 /* Tablets */
 @media (max-width: 768px) {
-    .chat-sidebar.open{
+    .chat-sidebar.open {
         top: 5%;
     }
+
     .chat-sidebar {
         width: 300px;
         transform: translateX(-100%);
@@ -1437,5 +1438,42 @@ select:focus-visible {
     .message.ai .message-content {
         background: #fff !important;
         color: #000 !important;
+    }
+}
+
+.sidebar-hint-label {
+    position: absolute;
+    left: 110%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--surface-light);
+    color: red;
+    font-size: 0.85rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+    z-index: 200;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    opacity: 0.92;
+    border: 1px solid var(--border-light);
+    font-weight: bold;
+}
+
+.sidebar-toggle.right .sidebar-hint-label {
+    left: auto;
+    right: 110%;
+}
+
+@media (max-width: 576px) {
+    .sidebar-hint-label {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        left: 105%;
+    }
+
+    .sidebar-toggle.right .sidebar-hint-label {
+        right: 105%;
     }
 }

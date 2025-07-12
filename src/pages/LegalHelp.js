@@ -134,6 +134,7 @@ export function LegalHelp() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [chatsLoaded, setChatsLoaded] = useState(false);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
+    const [showSidebarHint, setShowSidebarHint] = useState(true);
     const messagesEndRef = useRef(null);
 
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -580,7 +581,10 @@ export function LegalHelp() {
         }
     }, [messages]);
 
-    const handleSidebarToggle = () => setSidebarOpen((prev) => !prev);
+    const handleSidebarToggle = () => {
+        setSidebarOpen((prev) => !prev);
+        setShowSidebarHint(false); // Hide label when arrow is clicked
+    };
 
     return (
         <div className="legal-help">
@@ -700,6 +704,15 @@ export function LegalHelp() {
                 <span className="arrow-icon">
                     {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
                 </span>
+                {/* Show hint label for new users (≤ 3 chats) */}
+                {chatsLoaded && chats.length <= 3 && showSidebarHint && !sidebarOpen && (
+                    <span
+                        className="sidebar-hint-label"
+                        onClick={() => setShowSidebarHint(false)}
+                    >
+                        history / choose your lang
+                    </span>
+                )}
             </button>
 
             {/* Main Chat Area */}
