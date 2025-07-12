@@ -40,6 +40,8 @@ export function NyaySathiSignup({ onBack }) {
     const [otpVerified, setOtpVerified] = useState(false);
     const [otpError, setOtpError] = useState('');
     const [passwordWarning, setPasswordWarning] = useState('');
+    const [otpRequestCooldown, setOtpRequestCooldown] = useState(0);
+    const [otpVerifyCooldown, setOtpVerifyCooldown] = useState(0);
 
     // State for storing states and cities
     const [states, setStates] = useState([]);
@@ -362,6 +364,16 @@ export function NyaySathiSignup({ onBack }) {
             setOtpError('Please enter your email first.');
             return;
         }
+        setOtpRequestCooldown(60);
+        let interval = setInterval(() => {
+            setOtpRequestCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         try {
             const res = await fetch(`${BACKEND_URL}/api/auth/verify-email`, {
                 method: 'POST',
@@ -387,6 +399,16 @@ export function NyaySathiSignup({ onBack }) {
             setOtpError('Please enter the OTP.');
             return;
         }
+        setOtpVerifyCooldown(60);
+        let interval = setInterval(() => {
+            setOtpVerifyCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         try {
             const res = await fetch(`${BACKEND_URL}/api/auth/verify-email/otp`, {
                 method: 'POST',
@@ -668,8 +690,13 @@ export function NyaySathiSignup({ onBack }) {
                                     required
                                 />
                                 {!otpRequested && (
-                                    <button type="button" className="otp-button" onClick={requestOtp}>
-                                        Send OTP
+                                    <button
+                                        type="button"
+                                        className="otp-button"
+                                        onClick={requestOtp}
+                                        disabled={otpRequestCooldown > 0}
+                                    >
+                                        {otpRequestCooldown > 0 ? `Sending... (${otpRequestCooldown}s)` : 'Send OTP'}
                                     </button>
                                 )}
                                 {otpRequested && !otpVerified && (
@@ -681,8 +708,13 @@ export function NyaySathiSignup({ onBack }) {
                                             onChange={(e) => setOtp(e.target.value)}
                                             maxLength={6}
                                         />
-                                        <button type="button" className="verify-otp-button" onClick={verifyOtp}>
-                                            Verify OTP
+                                        <button
+                                            type="button"
+                                            className="verify-otp-button"
+                                            onClick={verifyOtp}
+                                            disabled={otpVerifyCooldown > 0}
+                                        >
+                                            {otpVerifyCooldown > 0 ? `Verifying... (${otpVerifyCooldown}s)` : 'Verify OTP'}
                                         </button>
                                         {otpError && <span className="error-message">{otpError}</span>}
                                     </div>

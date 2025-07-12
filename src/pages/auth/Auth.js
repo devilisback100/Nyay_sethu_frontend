@@ -17,6 +17,8 @@ export function Auth() {
     const [recoveryStep, setRecoveryStep] = useState(1);
     const [recoveryError, setRecoveryError] = useState('');
     const [recoverySuccess, setRecoverySuccess] = useState('');
+    const [recoveryOtpRequestCooldown, setRecoveryOtpRequestCooldown] = useState(0);
+    const [recoveryOtpVerifyCooldown, setRecoveryOtpVerifyCooldown] = useState(0);
 
     const navigate = useNavigate();
     const triggerAuthStateChange = () => {
@@ -76,6 +78,16 @@ export function Auth() {
             setRecoveryError('Please enter your email.');
             return;
         }
+        setRecoveryOtpRequestCooldown(60);
+        let interval = setInterval(() => {
+            setRecoveryOtpRequestCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         try {
             const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
             const res = await fetch(`${BACKEND_URL}/api/auth/password-reset/request`, {
@@ -117,6 +129,16 @@ export function Auth() {
             setRecoveryError('Password must be at least 8 characters long and contain at least one letter and one number.');
             return;
         }
+        setRecoveryOtpVerifyCooldown(60);
+        let interval = setInterval(() => {
+            setRecoveryOtpVerifyCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         try {
             const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
             const res = await fetch(`${BACKEND_URL}/api/auth/password-reset/confirm`, {
@@ -201,7 +223,13 @@ export function Auth() {
                                             onChange={(e) => setRecoveryEmail(e.target.value)}
                                             required
                                         />
-                                        <button type="submit" className="signin-button">Send OTP</button>
+                                        <button
+                                            type="submit"
+                                            className="signin-button"
+                                            disabled={recoveryOtpRequestCooldown > 0}
+                                        >
+                                            {recoveryOtpRequestCooldown > 0 ? 'Sending...' : 'Send OTP'}
+                                        </button>
                                     </form>
                                 )}
                                 {recoveryStep === 2 && (
@@ -225,7 +253,13 @@ export function Auth() {
                                                 Password must be at least 8 characters long and contain at least one letter and one number.
                                             </div>
                                         )}
-                                        <button type="submit" className="signin-button">Reset Password</button>
+                                        <button
+                                            type="submit"
+                                            className="signin-button"
+                                            disabled={recoveryOtpVerifyCooldown > 0}
+                                        >
+                                            {recoveryOtpVerifyCooldown > 0 ? 'Verifying...' : 'Reset Password'}
+                                        </button>
                                     </form>
                                 )}
                                 {recoveryStep === 3 && (

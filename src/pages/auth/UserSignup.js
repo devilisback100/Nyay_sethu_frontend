@@ -24,6 +24,8 @@ export function UserSignup({ onBack }) {
     const [otpVerified, setOtpVerified] = useState(false);
     const [otpError, setOtpError] = useState('');
     const [passwordWarning, setPasswordWarning] = useState('');
+    const [otpRequestCooldown, setOtpRequestCooldown] = useState(0);
+    const [otpVerifyCooldown, setOtpVerifyCooldown] = useState(0);
     const navigate = useNavigate();
 
     const API_KEY = process.env.REACT_APP_PLACES_API_KEY;
@@ -65,6 +67,16 @@ export function UserSignup({ onBack }) {
             setOtpError('Please enter your email first.');
             return;
         }
+        setOtpRequestCooldown(60);
+        let interval = setInterval(() => {
+            setOtpRequestCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         try {
             const res = await fetch(`${BACKEND_URL}/api/auth/verify-email`, {
                 method: 'POST',
@@ -90,6 +102,16 @@ export function UserSignup({ onBack }) {
             setOtpError('Please enter the OTP.');
             return;
         }
+        setOtpVerifyCooldown(60);
+        let interval = setInterval(() => {
+            setOtpVerifyCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         try {
             const res = await fetch(`${BACKEND_URL}/api/auth/verify-email/otp`, {
                 method: 'POST',
@@ -187,6 +209,7 @@ export function UserSignup({ onBack }) {
     };
 
     return (
+
         <div className="signup-container">
             <button className="back-button" onClick={onBack}>
                 <FaArrowLeft /> Back to Sign In
@@ -224,8 +247,13 @@ export function UserSignup({ onBack }) {
                             required
                         />
                         {!otpRequested && (
-                            <button type="button" className="otp-button" onClick={requestOtp}>
-                                Send OTP
+                            <button
+                                type="button"
+                                className="otp-button"
+                                onClick={requestOtp}
+                                disabled={otpRequestCooldown > 0}
+                            >
+                                {otpRequestCooldown > 0 ? `Sending... (${otpRequestCooldown}s)` : 'Send OTP'}
                             </button>
                         )}
                         {otpRequested && !otpVerified && (
@@ -237,8 +265,13 @@ export function UserSignup({ onBack }) {
                                     onChange={(e) => setOtp(e.target.value)}
                                     maxLength={6}
                                 />
-                                <button type="button" className="verify-otp-button" onClick={verifyOtp}>
-                                    Verify OTP
+                                <button
+                                    type="button"
+                                    className="verify-otp-button"
+                                    onClick={verifyOtp}
+                                    disabled={otpVerifyCooldown > 0}
+                                >
+                                    {otpVerifyCooldown > 0 ? 'Verifying...' : 'Verify OTP'}
                                 </button>
                                 {otpError && <span className="error-message">{otpError}</span>}
                             </div>
@@ -267,7 +300,7 @@ export function UserSignup({ onBack }) {
                             </div>
                         )}
                     </div>
-                    {/* Phone field removed */}
+
                     <div className="form-group">
                         <label><FaMapMarkerAlt className="input-icon" /> State</label>
                         <select
@@ -295,20 +328,32 @@ export function UserSignup({ onBack }) {
                         </select>
                     </div>
                 </div>
+
                 {error && <p className="error-message">{error}</p>}
                 {success && <p className="success-message">{success}</p>}
+
                 <div className="form-group terms">
                     <label className="checkbox-label">
                         <input type="checkbox" required />
-                        <span>I agree to the <span className="terms-link" style={{ color: "blue", textDecorationLine: "underline" }} onClick={handleTermsClick}>Terms of Service and Privacy Policy</span></span>
+                        <span>
+                            I agree to the{" "}
+                            <span
+                                className="terms-link"
+                                style={{ color: "blue", textDecorationLine: "underline" }}
+                                onClick={handleTermsClick}
+                            >
+                                Terms of Service and Privacy Policy
+                            </span>
+                        </span>
                     </label>
                 </div>
-                {/* Show prompt if not verified */}
+
                 {!otpVerified && (
                     <div className="verify-email-warning" style={{ color: "red", marginBottom: "10px" }}>
                         Please verify your email with OTP before signing up.
                     </div>
                 )}
+
                 <button
                     type="submit"
                     className="submit-button"
@@ -317,11 +362,13 @@ export function UserSignup({ onBack }) {
                     Create Account
                 </button>
             </form>
+
             <TermsAndConditions
                 isOpen={isTermsOpen}
                 onClose={handleTermsClose}
             />
         </div>
+
     );
 
 
