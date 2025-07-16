@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaUser, FaEnvelope, FaLock, FaMapMarkerAlt } from 'react-icons/fa';
 import { TermsAndConditions } from '../../components/TermsAndConditions';
 
-// eslint-disable-next-line no-unused-vars
 export function UserSignup({ onBack }) {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
-        phone: '', // keep in state, but not shown in UI
+        phone: '',
         state: '',
         district: '',
     });
@@ -17,7 +16,7 @@ export function UserSignup({ onBack }) {
     const [cities, setCities] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [isTermsOpen, setIsTermsOpen] = useState(false); // State to control the modal
+    const [isTermsOpen, setIsTermsOpen] = useState(false);
     const [otpRequested, setOtpRequested] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
@@ -26,13 +25,15 @@ export function UserSignup({ onBack }) {
     const [passwordWarning, setPasswordWarning] = useState('');
     const [otpRequestCooldown, setOtpRequestCooldown] = useState(0);
     const [otpVerifyCooldown, setOtpVerifyCooldown] = useState(0);
+    const [transferChats, setTransferChats] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const guestId = location.state?.guestId;
 
     const API_KEY = process.env.REACT_APP_PLACES_API_KEY;
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     useEffect(() => {
-        // Fetch Indian states on mount
         fetch('https://api.countrystatecity.in/v1/countries/IN/states', {
             headers: { 'X-CSCAPI-KEY': API_KEY }
         })
@@ -43,7 +44,6 @@ export function UserSignup({ onBack }) {
 
     useEffect(() => {
         if (formData.state) {
-            // Fetch cities when state is selected
             fetch(`https://api.countrystatecity.in/v1/countries/IN/states/${formData.state}/cities`, {
                 headers: { 'X-CSCAPI-KEY': API_KEY }
             })
@@ -155,13 +155,14 @@ export function UserSignup({ onBack }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    phone: '', // always send empty string for phone
+                    phone: '',
                     location: { state: formData.state, city: formData.district },
                 }),
             });
 
             if (response.ok) {
-                // Signup successful, now log the user in to get the token
+                const userData = await response.json();
+                const userId = userData.user_id;
                 const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -173,17 +174,36 @@ export function UserSignup({ onBack }) {
 
                 if (loginRes.ok) {
                     const loginData = await loginRes.json();
-                    // Store token and user info
                     localStorage.setItem('token', loginData.token);
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('userType', 'user');
                     localStorage.setItem('email', formData.email);
                     localStorage.setItem('password', formData.password);
-                    triggerAuthStateChange(); // Trigger auth state change event
-                    setSuccess('Account created successfully! Redirecting to your chatbot');
-                    setError('');
+                    if (transferChats && guestId && userId) {
+                        try {
+                            const convertRes = await fetch(`${BACKEND_URL}/api/chats/guest/convert/${guestId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${loginData.token}`
+                                },
+                                body: JSON.stringify({ user_id: userId })
+                            });
+                            if (!convertRes.ok) {
+                                setError('Failed to transfer guest chats. Please try again.');
+                            } else {
+                                localStorage.setItem('userId', userId);
+                                setSuccess('Guest chats transferred successfully! Redirecting to your chatbot.');
+                            }
+                        } catch (err) {
+                            setError('Error transferring guest chats. Please try again.');
+                        }
+                    } else {
+                        setSuccess('Account created successfully! Redirecting to your chatbot.');
+                    }
+                    triggerAuthStateChange();
                     setTimeout(() => {
-                        window.location.href = '/legal-help'; // Redirect to the legal help page
+                        window.location.href = '/legal-help';
                     }, 2000);
                 } else {
                     setError('Account created, but failed to log in. Please sign in manually.');
@@ -201,15 +221,14 @@ export function UserSignup({ onBack }) {
     };
 
     const handleTermsClick = () => {
-        setIsTermsOpen(true); // Open the modal
+        setIsTermsOpen(true);
     };
 
     const handleTermsClose = () => {
-        setIsTermsOpen(false); // Close the modal
+        setIsTermsOpen(false);
     };
 
     return (
-
         <div className="signup-container">
             <button className="back-button" onClick={onBack}>
                 <FaArrowLeft /> Back to Sign In
@@ -300,7 +319,6 @@ export function UserSignup({ onBack }) {
                             </div>
                         )}
                     </div>
-
                     <div className="form-group">
                         <label><FaMapMarkerAlt className="input-icon" /> State</label>
                         <select
@@ -327,6 +345,20 @@ export function UserSignup({ onBack }) {
                             ))}
                         </select>
                     </div>
+                    {guestId && (
+                        <div className="form-group">
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={transferChats}
+                                    onChange={() => setTransferChats(!transferChats)}
+                                />
+                                <span>
+                                    Transfer previous guest chats to this account
+                                </span>
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 {error && <p className="error-message">{error}</p>}
@@ -368,9 +400,5 @@ export function UserSignup({ onBack }) {
                 onClose={handleTermsClose}
             />
         </div>
-
     );
-
-
-
 }

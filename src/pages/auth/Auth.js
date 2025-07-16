@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FaUser, FaBalanceScale } from 'react-icons/fa';
 import { UserSignup } from './UserSignup';
 import { NyaySathiSignup } from './NyaySathiSignup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import './Auth.css';
 
@@ -21,10 +21,31 @@ export function Auth() {
     const [recoveryOtpVerifyCooldown, setRecoveryOtpVerifyCooldown] = useState(0);
 
     const navigate = useNavigate();
+    const location = useLocation();
+
     const triggerAuthStateChange = () => {
         const event = new CustomEvent('authStateChanged');
         window.dispatchEvent(event);
     };
+
+    const convertGuestChats = async (guestId, userId, token) => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/chats/guest/convert/${guestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ user_id: userId }),
+            });
+            if (!response.ok) throw new Error('Failed to convert guest chats');
+            const data = await response.json();
+            console.log(data.message);
+        } catch (err) {
+            console.error('Error converting guest chats:', err);
+        }
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
         const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -35,7 +56,7 @@ export function Auth() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: loginData.email,
-                    password: loginData.password
+                    password: loginData.password,
                 }),
             });
 
@@ -44,21 +65,26 @@ export function Auth() {
                 const token = data.token;
                 const decoded = jwtDecode(token);
 
-
                 const userType = decoded.user_type || (decoded.nyaysathi_id ? 'nyaysathi' : 'user');
+                const userId = decoded.user_id || decoded.nyaysathi_id;
 
-                // Update localStorage immediately
+                // Update localStorage
                 localStorage.setItem('token', token);
-                localStorage.setItem('userId', decoded.user_id || decoded.nyaysathi_id);
+                localStorage.setItem('userId', userId);
                 localStorage.setItem('email', loginData.email);
                 localStorage.setItem('password', loginData.password);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userType', userType);
                 localStorage.setItem('preferred_language', decoded.preferred_language || 'english');
                 localStorage.setItem('location', decoded.location?.city || 'unknown');
+
+                // Convert guest chats if guestId is provided
+                const guestId = location.state?.guestId;
+                if (guestId && userType === 'user') {
+                    await convertGuestChats(guestId, userId, token);
+                }
+
                 triggerAuthStateChange();
-
-
                 navigate('/legal-help');
             } else {
                 const err = await response.text();
@@ -108,7 +134,6 @@ export function Auth() {
         }
     };
 
-    // Password strength check
     const isStrongPassword = (password) => {
         return (
             password.length >= 8 &&
@@ -203,7 +228,6 @@ export function Auth() {
                                 Forgot Password?
                             </button>
                         </form>
-                        {/* Password Recovery Modal/Form */}
                         {showRecovery && (
                             <div className="password-recovery-modal" style={{
                                 background: '#fff',
@@ -249,7 +273,7 @@ export function Auth() {
                                             required
                                         />
                                         {!isStrongPassword(recoveryNewPassword) && recoveryNewPassword.length > 0 && (
-                                            <div style={{ color: "#d32f2f", fontSize: "0.95rem" }}>
+                                            <div style={{ color: '#d32f2f', fontSize: '0.95rem' }}>
                                                 Password must be at least 8 characters long and contain at least one letter and one number.
                                             </div>
                                         )}

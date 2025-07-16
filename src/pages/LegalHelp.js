@@ -5,121 +5,70 @@ import { IoMdSend } from "react-icons/io";
 import { FaPlus, FaTrash, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './LegalHelp.css';
 
-// Helper to get chat display name with enhanced logic
 function getChatDisplayName(chat) {
-    // If chat has a custom name, use it
     if (chat.name && chat.name.trim()) return chat.name;
-
-    // If chat has 3 or more messages, use the third message as the chat name
     if (chat.messages && Array.isArray(chat.messages) && chat.messages.length >= 3) {
         const thirdMessage = chat.messages[2];
         if (thirdMessage && thirdMessage.message_text) {
             let chatName = thirdMessage.message_text.trim();
-            if (chatName.length > 30) {
-                chatName = chatName.substring(0, 30) + '...';
-            }
+            if (chatName.length > 30) chatName = chatName.substring(0, 30) + '...';
             return chatName;
         }
     }
-
-    // If chat has at least 1 message, use the first message as the chat name
     if (chat.messages && Array.isArray(chat.messages) && chat.messages.length > 0) {
         const firstMessage = chat.messages[0];
         if (firstMessage && firstMessage.message_text) {
             let chatName = firstMessage.message_text.trim();
-            if (chatName.length > 30) {
-                chatName = chatName.substring(0, 30) + '...';
-            }
+            if (chatName.length > 30) chatName = chatName.substring(0, 30) + '...';
             return chatName;
         }
     }
-
-    // If no messages, use time-based name
     if (!chat.created_at) return chat.is_ai_chat ? 'AI Legal Assistant' : 'User Chat';
-
     const created = new Date(chat.created_at);
     const now = new Date();
-
-    // Remove time for comparison
     const createdDay = new Date(created.getFullYear(), created.getMonth(), created.getDate());
     const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
     const msInDay = 24 * 60 * 60 * 1000;
     const diffDays = Math.floor((nowDay - createdDay) / msInDay);
-
-    // Enhanced timeframe logic
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) {
-        // Return day name (Monday, Tuesday, etc.)
-        return created.toLocaleDateString(undefined, { weekday: 'long' });
-    }
-    if (diffDays < 14) {
-        return '1 week ago';
-    }
-    if (diffDays < 21) {
-        return '2 weeks ago';
-    }
-    if (diffDays < 28) {
-        return '3 weeks ago';
-    }
-    if (diffDays < 60) {
-        return '1 month ago';
-    }
+    if (diffDays < 7) return created.toLocaleDateString(undefined, { weekday: 'long' });
+    if (diffDays < 14) return '1 week ago';
+    if (diffDays < 21) return '2 weeks ago';
+    if (diffDays < 28) return '3 weeks ago';
+    if (diffDays < 60) return '1 month ago';
     if (diffDays < 365) {
         const months = Math.floor(diffDays / 30);
         return `${months} month${months > 1 ? 's' : ''} ago`;
     }
-
-    // For dates older than a year
     const years = Math.floor(diffDays / 365);
-    if (years === 1) {
-        return '1 year ago';
-    }
+    if (years === 1) return '1 year ago';
     return `${years} years ago`;
 }
 
 const formatAIResponse = (text) => {
     if (!text) return '';
-
     let formattedText = text
-        // Convert triple asterisks to strong bold headings
         .replace(/\*\*\*(.*?)\*\*\*/g, '<h4 class="ai-heading">$1</h4>')
-        // Convert double asterisks to bold
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        // Convert single asterisks to italic
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        // Convert numbered lists (1. 2. 3. etc.)
         .replace(/^\d+\.\s+(.+)$/gm, '<li class="ai-list-item">$1</li>')
-        // Convert bullet points with * or -
         .replace(/^[*-]\s+(.+)$/gm, '<li class="ai-list-item">$1</li>')
-        // Convert sections like "Section 302:" to highlighted format
         .replace(/Section\s+(\d+[A-Z]*)\s*:?\s*/gi, '<span class="legal-section">Section $1:</span> ')
-        // Convert IPC references
         .replace(/(\d+[A-Z]*)\s+IPC/gi, '<span class="legal-reference">$1 IPC</span>')
-        // Convert line breaks to HTML breaks
         .replace(/\n/g, '<br>');
-
-    // Wrap consecutive list items in ul tags
     formattedText = formattedText.replace(
         /(<li class="ai-list-item">.*?<\/li>)(?:\s*<br>\s*<li class="ai-list-item">.*?<\/li>)*/gs,
-        (match) => {
-            return '<ul class="ai-list">' + match.replace(/<br>\s*/g, '') + '</ul>';
-        }
+        (match) => '<ul class="ai-list">' + match.replace(/<br>\s*/g, '') + '</ul>'
     );
-
-    // Handle emergency contacts and important numbers
     formattedText = formattedText.replace(
         /(police at \d+|helpline at \d+|contact \d+)/gi,
         '<span class="emergency-contact">$1</span>'
     );
-
-    // Highlight important warnings
     formattedText = formattedText.replace(
         /(immediate danger|emergency|urgent|important)/gi,
         '<span class="important-warning">$1</span>'
     );
-
     return formattedText;
 };
 
@@ -135,38 +84,49 @@ export function LegalHelp() {
     const [chatsLoaded, setChatsLoaded] = useState(false);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [showSidebarHint, setShowSidebarHint] = useState(true);
+    const [isGuest, setIsGuest] = useState(!localStorage.getItem('token'));
+    const [guestMessageCount, setGuestMessageCount] = useState(0);
     const messagesEndRef = useRef(null);
 
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
     const MODEL_BACKEND_URL = process.env.REACT_APP_Model_Backend;
     const navigate = useNavigate();
 
-    // Get user's location on component mount
+    const getOrCreateUserId = () => {
+        let userId = localStorage.getItem('userId');
+        if (!userId) {
+            userId = `anon_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem('userId', userId);
+        }
+        return userId;
+    };
+
+    useEffect(() => {
+        // Ensure userId is set before any API calls
+        getOrCreateUserId();
+        fetchChats();
+    }, [BACKEND_URL, navigate]);
+
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const { latitude, longitude } = position.coords;
-
                     try {
                         const response = await fetch(
                             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
                         );
                         const data = await response.json();
-
                         const city = data.address.city || data.address.town || data.address.village || "";
                         const state = data.address.state || "";
                         const country = data.address.country || "";
-
                         const fullLocation = [city, state, country].filter(Boolean).join(", ");
-                        setUserLocation(fullLocation || "Unknown location");
+                        setUserLocation(fullLocation || "Delhi, India");
                     } catch (error) {
-                        setUserLocation("Delhi, India"); // fallback
+                        setUserLocation("Delhi, India");
                     }
                 },
-                (error) => {
-                    setUserLocation("Delhi, India"); // fallback
-                }
+                () => setUserLocation("Delhi, India")
             );
         } else {
             setUserLocation("Geolocation not supported");
@@ -175,11 +135,44 @@ export function LegalHelp() {
 
     const fetchChats = async () => {
         const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId') || getOrCreateUserId();
+
         if (!token) {
-            localStorage.clear();
-            navigate('/auth');
+            setIsGuest(true);
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chats/guest/${userId}/chats`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!response.ok) throw new Error('Failed to fetch guest chats');
+                const data = await response.json();
+
+                // Apply consistent formatting to guest messages
+                const formattedChats = data.map(chat => ({
+                    ...chat,
+                    messages: (chat.messages || []).map(msg => {
+                        // Keep original message text for all messages
+                        return {
+                            ...msg,
+                            message_text: msg.message_text
+                        };
+                    })
+                }));
+
+                const totalMessages = formattedChats.reduce((sum, chat) => sum + (chat.messages?.length || 0), 0);
+                setChats(formattedChats);
+                setGuestMessageCount(totalMessages);
+                setChatsLoaded(true);
+            } catch (err) {
+                console.error('Error fetching guest chats:', err);
+                setChatsLoaded(true);
+            }
             return;
         }
+
+        // For registered users - make sure to set isGuest to false
+        setIsGuest(false);
+
         try {
             const response = await fetch(`${BACKEND_URL}/api/chats/list`, {
                 method: 'GET',
@@ -188,18 +181,14 @@ export function LegalHelp() {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-
             if (response.status === 401) {
                 localStorage.clear();
                 navigate('/auth');
                 return;
             }
-
             if (!response.ok) throw new Error('Failed to fetch chats');
-
             const data = await response.json();
 
-            // Enhanced: Fetch messages for each chat to enable better naming
             const chatsWithMessages = await Promise.all(
                 data.map(async (chat) => {
                     try {
@@ -210,10 +199,19 @@ export function LegalHelp() {
                                 'Authorization': `Bearer ${token}`,
                             },
                         });
-
                         if (messagesResponse.ok) {
                             const messagesData = await messagesResponse.json();
-                            return { ...chat, messages: messagesData.messages || [] };
+
+                            // CRITICAL FIX: Apply consistent formatting to all messages
+                            const formattedMessages = (messagesData.messages || []).map(msg => {
+                                // Keep original message text for all messages, formatting happens in render
+                                return {
+                                    ...msg,
+                                    message_text: msg.message_text
+                                };
+                            });
+
+                            return { ...chat, messages: formattedMessages };
                         }
                         return { ...chat, messages: [] };
                     } catch (error) {
@@ -221,7 +219,6 @@ export function LegalHelp() {
                     }
                 })
             );
-
             setChats(chatsWithMessages);
             setChatsLoaded(true);
         } catch (err) {
@@ -230,18 +227,39 @@ export function LegalHelp() {
         }
     };
 
-    const createNewChat = async () => {
-        if (isCreatingChat) return null; // Prevent multiple simultaneous creations
 
+    const createNewChat = async () => {
+        if (isCreatingChat || (isGuest && guestMessageCount >= 15)) return null;
         setIsCreatingChat(true);
         const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
+        const userId = localStorage.getItem('userId') || getOrCreateUserId();
 
         if (!token) {
-            localStorage.clear();
-            navigate('/auth');
-            setIsCreatingChat(false);
-            return null;
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chats/guest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_ai_chat: true, guest_id: userId }),
+                });
+                if (!response.ok) throw new Error('Failed to create guest chat');
+                const data = await response.json();
+                const newChat = {
+                    chat_id: data.chat_id,
+                    is_ai_chat: true,
+                    messages: [],
+                    created_at: new Date().toISOString(),
+                    guest_id: userId,
+                };
+                setChats((prev) => [newChat, ...prev]);
+                setChatId(data.chat_id);
+                setMessages([]);
+                setIsCreatingChat(false);
+                return data.chat_id;
+            } catch (err) {
+                console.error('Error creating guest chat:', err);
+                setIsCreatingChat(false);
+                return null;
+            }
         }
 
         try {
@@ -258,29 +276,24 @@ export function LegalHelp() {
                     status: 'active',
                 }),
             });
-
             if (response.status === 401) {
                 localStorage.clear();
                 navigate('/auth');
                 setIsCreatingChat(false);
                 return null;
             }
-
             if (!response.ok) throw new Error('Failed to create new chat');
-
             const data = await response.json();
             const newChat = {
                 chat_id: data.chat_id,
                 is_ai_chat: true,
                 messages: [],
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
             };
-
             setChats((prev) => [newChat, ...prev]);
             setChatId(data.chat_id);
             setMessages([]);
             setIsCreatingChat(false);
-
             return data.chat_id;
         } catch (err) {
             console.error('Error creating new chat:', err);
@@ -289,19 +302,37 @@ export function LegalHelp() {
         }
     };
 
-    // Create chat only when user sends first message
     const createChatOnFirstMessage = async () => {
-        if (isCreatingChat) return null;
-
+        if (isCreatingChat || (isGuest && guestMessageCount >= 15)) return null;
         setIsCreatingChat(true);
         const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
+        const userId = localStorage.getItem('userId') || getOrCreateUserId();
 
         if (!token) {
-            localStorage.clear();
-            navigate('/auth');
-            setIsCreatingChat(false);
-            return null;
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chats/guest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_ai_chat: true, guest_id: userId }),
+                });
+                if (!response.ok) throw new Error('Failed to create guest chat');
+                const data = await response.json();
+                const newChat = {
+                    chat_id: data.chat_id,
+                    is_ai_chat: true,
+                    messages: [],
+                    created_at: new Date().toISOString(),
+                    guest_id: userId,
+                };
+                setChats((prev) => [newChat, ...prev]);
+                setChatId(data.chat_id);
+                setIsCreatingChat(false);
+                return data.chat_id;
+            } catch (err) {
+                console.error('Error creating guest chat:', err);
+                setIsCreatingChat(false);
+                return null;
+            }
         }
 
         try {
@@ -318,29 +349,23 @@ export function LegalHelp() {
                     status: 'active',
                 }),
             });
-
             if (response.status === 401) {
                 localStorage.clear();
                 navigate('/auth');
                 setIsCreatingChat(false);
                 return null;
             }
-
             if (!response.ok) throw new Error('Failed to create new chat');
-
             const data = await response.json();
             const newChat = {
                 chat_id: data.chat_id,
                 is_ai_chat: true,
                 messages: [],
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
             };
-
-            // Update chats list and set current chat
             setChats((prev) => [newChat, ...prev]);
             setChatId(data.chat_id);
             setIsCreatingChat(false);
-
             return data.chat_id;
         } catch (err) {
             console.error('Error creating chat on first message:', err);
@@ -349,26 +374,31 @@ export function LegalHelp() {
         }
     };
 
-    // Load chats on component mount - NO AUTO-CREATE
-    useEffect(() => {
-        const initializeChats = async () => {
-            await fetchChats();
-        };
-        initializeChats();
-    }, [BACKEND_URL, navigate]);
-
-    // Set initial chat when chats are loaded
     useEffect(() => {
         if (chatsLoaded && chats.length > 0 && !chatId) {
-            // If there are existing chats, select the first one
             const firstChat = chats[0];
             setChatId(firstChat.chat_id);
-            fetchMessages(firstChat.chat_id);
-        }
-    }, [chatsLoaded, chats, chatId]);
 
+            if (isGuest) {
+                // For guest users - use messages from chat object
+                const formattedMessages = (firstChat.messages || []).map(msg => {
+                    // Keep original message text for all messages, formatting happens in render
+                    return {
+                        ...msg,
+                        message_text: msg.message_text
+                    };
+                });
+                setMessages(formattedMessages);
+            } else {
+                // For registered users - fetch messages from API
+                fetchMessages(firstChat.chat_id);
+            }
+        }
+    }, [chatsLoaded, chats, chatId, isGuest]);
     const fetchMessages = async (chatId) => {
         const token = localStorage.getItem('token');
+        if (!token) return;
+
         try {
             const response = await fetch(`${BACKEND_URL}/api/chats/${chatId}/messages`, {
                 method: 'GET',
@@ -377,32 +407,30 @@ export function LegalHelp() {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-
             if (!response.ok) throw new Error('Failed to fetch messages');
-
             const data = await response.json();
-            setMessages(data.messages || []);
+
+            // CRITICAL FIX: Apply consistent formatting to ALL messages
+            const formattedMessages = (data.messages || []).map(msg => {
+                // Keep original message text for all messages, formatting happens in render
+                return {
+                    ...msg,
+                    message_text: msg.message_text
+                };
+            });
+
+            setMessages(formattedMessages);
         } catch (err) {
             console.error('Error fetching messages:', err);
         }
     };
-
     const sendMessage = async () => {
-        if (!newMessage.trim()) return;
-        if (loading || isCreatingChat) return;
+        if (!newMessage.trim() || loading || isCreatingChat || (isGuest && guestMessageCount >= 15)) return;
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            localStorage.clear();
-            navigate('/auth');
-            return;
-        }
-
-        const userId = localStorage.getItem('userId');
+        const userId = localStorage.getItem('userId') || getOrCreateUserId();
         const userMessage = newMessage.trim();
-
-        // If no current chat, create one first
         let currentChatId = chatId;
+
         if (!currentChatId) {
             currentChatId = await createChatOnFirstMessage();
             if (!currentChatId) {
@@ -418,49 +446,58 @@ export function LegalHelp() {
             message_type: 'text',
         };
 
-        // Add user message to UI immediately
         setMessages((prev) => [...prev, { ...message }]);
         setNewMessage('');
         setLoading(true);
+        if (isGuest) setGuestMessageCount((prev) => prev + 1);
 
         try {
-            // Save the user message to backend
-            const saveMessageResponse = await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(message),
-            });
-
-            if (saveMessageResponse.status === 401) {
-                localStorage.clear();
-                navigate('/auth');
-                return;
+            const token = localStorage.getItem('token');
+            if (isGuest) {
+                const saveMessageResponse = await fetch(`${BACKEND_URL}/api/chats/guest/messages/add/${currentChatId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...message, guest_id: userId }),
+                });
+                if (saveMessageResponse.status === 403) {
+                    setGuestMessageCount(15);
+                    setMessages((prev) => [...prev, {
+                        sender_id: 'ai_bot',
+                        receiver_id: userId,
+                        message_text: 'Guest message limit reached. Please sign up to continue.',
+                        message_type: 'text',
+                    }]);
+                    setLoading(false);
+                    return;
+                }
+                if (!saveMessageResponse.ok) throw new Error('Failed to save guest message');
+            } else if (token) {
+                const saveMessageResponse = await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(message),
+                });
+                if (saveMessageResponse.status === 401) {
+                    localStorage.clear();
+                    navigate('/auth');
+                    return;
+                }
+                if (!saveMessageResponse.ok) throw new Error('Failed to save message');
             }
 
-            if (!saveMessageResponse.ok) {
-                throw new Error('Failed to save message');
-            }
-
-            // Call the AI model chat endpoint
             const aiResponse = await fetch(`${MODEL_BACKEND_URL}/model_chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: userMessage,
                     location: userLocation,
-                    preferred_language: preferredLanguage
+                    preferred_language: preferredLanguage,
                 }),
             });
-
-            if (!aiResponse.ok) {
-                throw new Error('Failed to get AI response');
-            }
-
+            if (!aiResponse.ok) throw new Error('Failed to get AI response');
             const aiData = await aiResponse.json();
 
             if (aiData.status === 'success' && aiData.response) {
@@ -470,10 +507,28 @@ export function LegalHelp() {
                     message_text: aiData.response,
                     message_type: 'text',
                 };
-
                 setMessages((prev) => [...prev, aiMessage]);
+                if (isGuest) setGuestMessageCount((prev) => prev + 1);
 
-                try {
+                if (isGuest) {
+                    const saveAIResponse = await fetch(`${BACKEND_URL}/api/chats/guest/messages/add/${currentChatId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...aiMessage, guest_id: userId }),
+                    });
+                    if (saveAIResponse.status === 403) {
+                        setGuestMessageCount(15);
+                        setMessages((prev) => [...prev, {
+                            sender_id: 'ai_bot',
+                            receiver_id: userId,
+                            message_text: 'Guest message limit reached. Please sign up to continue.',
+                            message_type: 'text',
+                        }]);
+                        return;
+                    }
+                    if (!saveAIResponse.ok) throw new Error('Failed to save AI response');
+                    await fetchChats();
+                } else if (token) {
                     await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
                         method: 'POST',
                         headers: {
@@ -482,13 +537,7 @@ export function LegalHelp() {
                         },
                         body: JSON.stringify(aiMessage),
                     });
-
-                    // Only refresh chats if this is the first message (to update chat name)
-                    if (messages.length === 0) {
-                        await fetchChats();
-                    }
-                } catch (saveError) {
-                    console.error('Error saving AI message:', saveError);
+                    if (messages.length === 0) await fetchChats();
                 }
             } else {
                 const errorMessage = {
@@ -498,7 +547,66 @@ export function LegalHelp() {
                     message_type: 'text',
                 };
                 setMessages((prev) => [...prev, errorMessage]);
+                if (isGuest) setGuestMessageCount((prev) => prev + 1);
 
+                if (isGuest) {
+                    const saveErrorResponse = await fetch(`${BACKEND_URL}/api/chats/guest/messages/add/${currentChatId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...errorMessage, guest_id: userId }),
+                    });
+                    if (saveErrorResponse.status === 403) {
+                        setGuestMessageCount(15);
+                        setMessages((prev) => [...prev, {
+                            sender_id: 'ai_bot',
+                            receiver_id: userId,
+                            message_text: 'Guest message limit reached. Please sign up to continue.',
+                            message_type: 'text',
+                        }]);
+                        return;
+                    }
+                    if (!saveErrorResponse.ok) throw new Error('Failed to save error message');
+                } else if (token) {
+                    await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(errorMessage),
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Error sending message:', err);
+            const errorMessage = {
+                sender_id: 'ai_bot',
+                receiver_id: userId,
+                message_text: 'I apologize, but I\'m experiencing technical difficulties. Please try again or contact emergency services if you need immediate help.',
+                message_type: 'text',
+            };
+            const token = localStorage.getItem('token')
+            setMessages((prev) => [...prev, errorMessage]);
+            if (isGuest) setGuestMessageCount((prev) => prev + 1);
+
+            if (isGuest) {
+                const saveErrorResponse = await fetch(`${BACKEND_URL}/api/chats/guest/messages/add/${currentChatId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...errorMessage, guest_id: userId }),
+                });
+                if (saveErrorResponse.status === 403) {
+                    setGuestMessageCount(15);
+                    setMessages((prev) => [...prev, {
+                        sender_id: 'ai_bot',
+                        receiver_id: userId,
+                        message_text: 'Guest message limit reached. Please sign up to continue.',
+                        message_type: 'text',
+                    }]);
+                    return;
+                }
+                if (!saveErrorResponse.ok) console.error('Error saving error message:', err);
+            } else if (token) {
                 try {
                     await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
                         method: 'POST',
@@ -512,30 +620,6 @@ export function LegalHelp() {
                     console.error('Error saving error message:', saveError);
                 }
             }
-
-        } catch (err) {
-            console.error('Error sending message:', err);
-
-            const errorMessage = {
-                sender_id: 'ai_bot',
-                receiver_id: userId,
-                message_text: 'I apologize, but I\'m experiencing technical difficulties. Please try again or contact emergency services if you need immediate help.',
-                message_type: 'text',
-            };
-            setMessages((prev) => [...prev, errorMessage]);
-
-            try {
-                await fetch(`${BACKEND_URL}/api/chats/messages/add/${currentChatId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(errorMessage),
-                });
-            } catch (saveError) {
-                console.error('Error saving error message:', saveError);
-            }
         } finally {
             setLoading(false);
         }
@@ -543,26 +627,25 @@ export function LegalHelp() {
 
     const deleteChat = async (chatIdToDelete) => {
         const token = localStorage.getItem('token');
+        if (!token) return;
         try {
             const response = await fetch(`${BACKEND_URL}/api/chats/delete/${chatIdToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
-
             if (!response.ok) throw new Error('Failed to delete chat');
-
             setChats((prev) => prev.filter((chat) => chat.chat_id !== chatIdToDelete));
-
             if (chatIdToDelete === chatId) {
-                // If deleting current chat, reset chat state
                 setChatId(null);
                 setMessages([]);
-
-                // If there are other chats, select the first one
                 const remainingChats = chats.filter((chat) => chat.chat_id !== chatIdToDelete);
                 if (remainingChats.length > 0) {
                     setChatId(remainingChats[0].chat_id);
-                    fetchMessages(remainingChats[0].chat_id);
+                    if (isGuest) {
+                        setMessages(remainingChats[0].messages || []);
+                    } else {
+                        fetchMessages(remainingChats[0].chat_id);
+                    }
                 }
             }
         } catch (err) {
@@ -572,7 +655,22 @@ export function LegalHelp() {
 
     const handleChatSelection = (selectedChatId) => {
         setChatId(selectedChatId);
-        fetchMessages(selectedChatId);
+        const selectedChat = chats.find((chat) => chat.chat_id === selectedChatId);
+
+        if (isGuest && selectedChat) {
+            // For guest users, use messages from the chat object directly
+            const formattedMessages = (selectedChat.messages || []).map(msg => {
+                // Keep original message text for all messages, formatting happens in render
+                return {
+                    ...msg,
+                    message_text: msg.message_text
+                };
+            });
+            setMessages(formattedMessages);
+        } else {
+            // For registered users, fetch messages from API
+            fetchMessages(selectedChatId);
+        }
     };
 
     useEffect(() => {
@@ -583,29 +681,44 @@ export function LegalHelp() {
 
     const handleSidebarToggle = () => {
         setSidebarOpen((prev) => !prev);
-        setShowSidebarHint(false); // Hide label when arrow is clicked
+        setShowSidebarHint(false);
+    };
+
+    const handleSignupRedirect = () => {
+        navigate('/auth', { state: { guestId: localStorage.getItem('userId') } });
     };
 
     return (
         <div className="legal-help">
-            {/* Sidebar Overlay for mobile */}
             <div
                 className={`sidebar-overlay${sidebarOpen ? ' visible' : ''}`}
                 onClick={() => setSidebarOpen(false)}
                 style={{ display: sidebarOpen ? 'block' : 'none' }}
             />
-
-            {/* Sidebar */}
             <div className={`chat-sidebar${sidebarOpen ? ' open' : ''}`} style={{ transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)' }}>
-                <button
-                    className="new-chat-button"
-                    onClick={createNewChat}
-                    disabled={isCreatingChat}
-                >
-                    <FaPlus /> {isCreatingChat ? 'Creating...' : 'New Chat'}
-                </button>
-
-                {/* Settings section */}
+                {!isGuest && (
+                    <button
+                        className="new-chat-button"
+                        onClick={createNewChat}
+                        disabled={isCreatingChat}
+                    >
+                        <FaPlus /> {isCreatingChat ? 'Creating...' : 'New Chat'}
+                    </button>
+                )}
+                {isGuest && guestMessageCount >= 15 && (
+                    <p className="guest-limit-message" style={{ color: 'red', padding: '10px', textAlign: 'center' }}>
+                        Guest message limit reached. Please sign up to continue.
+                    </p>
+                )}
+                {isGuest && (
+                    <button
+                        className="signup-button"
+                        onClick={handleSignupRedirect}
+                        style={{ margin: '10px', padding: '8px 16px', backgroundColor: 'purple', color: 'white', border: 'none', borderRadius: '4px' }}
+                    >
+                        Sign Up to Save Chats
+                    </button>
+                )}
                 <div className="chat-settings">
                     <div className="setting-group">
                         <label htmlFor="location">Location:</label>
@@ -650,25 +763,14 @@ export function LegalHelp() {
                         </select>
                     </div>
                 </div>
-
                 {chats.map((chat) => {
-                    // Enhanced display name logic
                     let displayName = '';
-                    const currentUserId = localStorage.getItem('userId');
-
-                    // Check for other users first (for regular chats)
+                    const currentUserId = localStorage.getItem('userId') || chat.guest_id;
                     if (Array.isArray(chat.users)) {
-                        const otherUser = chat.users.find(u => u.user_id !== currentUserId);
-                        if (otherUser && otherUser.name) {
-                            displayName = otherUser.name;
-                        }
+                        const otherUser = chat.users.find((u) => u.user_id !== currentUserId);
+                        if (otherUser && otherUser.name) displayName = otherUser.name;
                     }
-
-                    // If no other user name, use enhanced chat naming logic
-                    if (!displayName) {
-                        displayName = getChatDisplayName(chat) || 'AI Legal Assistant';
-                    }
-
+                    if (!displayName) displayName = getChatDisplayName(chat) || 'AI Legal Assistant';
                     return (
                         <div
                             key={chat.chat_id}
@@ -676,48 +778,35 @@ export function LegalHelp() {
                             onClick={() => handleChatSelection(chat.chat_id)}
                         >
                             <p title={displayName}>{displayName}</p>
-                            <button
-                                className="delete-chat-button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteChat(chat.chat_id);
-                                }}
-                            >
-                                <FaTrash />
-                            </button>
+                            {!isGuest && (
+                                <button
+                                    className="delete-chat-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteChat(chat.chat_id);
+                                    }}
+                                >
+                                    <FaTrash />
+                                </button>
+                            )}
                         </div>
                     );
                 })}
             </div>
-
-            {/* Sidebar Toggle Floating Arrow */}
             <button
                 className={`sidebar-toggle${sidebarOpen ? ' right' : ''}`}
                 onClick={handleSidebarToggle}
                 aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-                style={{
-                    left: sidebarOpen ? 'auto' : 24,
-                    right: sidebarOpen ? 24 : 'auto',
-                    top: '11%'
-                }}
+                style={{ left: sidebarOpen ? 'auto' : 24, right: sidebarOpen ? 24 : 'auto', top: '11%' }}
             >
-                <span className="arrow-icon">
-                    {sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
-                </span>
-                {/* Show hint label for new users (≤ 3 chats) */}
+                <span className="arrow-icon">{sidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}</span>
                 {chatsLoaded && chats.length <= 3 && showSidebarHint && !sidebarOpen && (
-                    <span
-                        className="sidebar-hint-label"
-                        onClick={() => setShowSidebarHint(false)}
-                    >
+                    <span className="sidebar-hint-label" onClick={() => setShowSidebarHint(false)}>
                         history / choose your lang
                     </span>
                 )}
             </button>
-
-            {/* Main Chat Area */}
             <div className={`chat-main${!sidebarOpen ? ' sidebar-closed' : ''}`}>
-                {/* Show welcome message when no chat is selected or no messages */}
                 {chatsLoaded && (!chatId || messages.length === 0) && (
                     <div className="welcome-message">
                         <h2>Welcome to Legal Help Assistant</h2>
@@ -732,30 +821,35 @@ export function LegalHelp() {
                         {!chatId && (
                             <p><strong>Start typing your legal question below to begin a new conversation.</strong></p>
                         )}
+                        {isGuest && (
+                            <p><strong>Note: As a guest, you have {15 - guestMessageCount} messages left. Sign up to save your conversations.</strong></p>
+                        )}
+                        {isGuest && (
+                            <button
+                                onClick={handleSignupRedirect}
+                                style={{ padding: '8px 16px', backgroundColor: 'purple', color: 'white', border: 'none', borderRadius: '4px' }}
+                            >
+                                Sign Up to Save Chats
+                            </button>
+                        )}
                     </div>
                 )}
-
-                {/* Show loading message only if chats are not loaded yet */}
                 {!chatsLoaded && (
                     <div className="welcome-message">
                         <h2>Welcome to Legal Help Assistant</h2>
                         <p>Loading your conversations...</p>
                     </div>
                 )}
-
-                {/* Chat messages and input */}
                 {chatsLoaded && (
                     <>
                         <div className="messages">
                             {messages.map((msg, i) => (
-                                <div key={i} className={`message ${msg.sender_id === 'ai_bot' ? 'ai' : 'user'}`}>
+                                <div key={i} className={`message ${i % 2 === 0 ? 'user' : 'ai'}`}>
                                     <div className="message-content">
-                                        {msg.sender_id === 'ai_bot' ? (
+                                        {i % 2 === 1 ? (
                                             <div
                                                 className="message-text ai-formatted"
-                                                dangerouslySetInnerHTML={{
-                                                    __html: DOMPurify.sanitize(formatAIResponse(msg.message_text))
-                                                }}
+                                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatAIResponse(msg.message_text)) }}
                                             />
                                         ) : (
                                             <div className="message-text">{msg.message_text}</div>
@@ -783,23 +877,23 @@ export function LegalHelp() {
                             <textarea
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Describe your legal concern here"
-                                disabled={loading || isCreatingChat}
+                                placeholder={isGuest && guestMessageCount >= 15 ? 'Message limit reached. Please sign up.' : 'Describe your legal concern here'}
+                                disabled={loading || isCreatingChat || (isGuest && guestMessageCount >= 15)}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
                                         sendMessage();
                                     }
                                 }}
-                                style={{ display: "flex" }}
+                                style={{ display: 'flex' }}
                             />
                             <button
                                 className="send-button"
                                 onClick={sendMessage}
-                                disabled={loading || !newMessage.trim() || isCreatingChat}
-                                style={{ backgroundColor: "purple", opacity: "1", alignSelf: "center", scale: "1.08" }}
+                                disabled={loading || !newMessage.trim() || isCreatingChat || (isGuest && guestMessageCount >= 15)}
+                                style={{ backgroundColor: 'purple', opacity: '1', alignSelf: 'center', scale: '1.08' }}
                             >
-                                {loading ? 'Sending...' : isCreatingChat ? 'Creating...' : <div style={{ color: "white", width: "100%" }}><IoMdSend /></div>}
+                                {loading ? 'Sending...' : isCreatingChat ? 'Creating...' : <div style={{ color: 'white', width: '100%' }}><IoMdSend /></div>}
                             </button>
                         </div>
                     </>
