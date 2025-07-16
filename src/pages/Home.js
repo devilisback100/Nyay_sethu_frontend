@@ -118,7 +118,7 @@ export function Home() {
                     <h1>Justice Made <span className="highlight">Simple</span></h1>
                     <p className="hero-subtitle">Your AI-powered legal companion for quick and reliable legal assistance</p>
                     <div className="hero-actions" >
-                        <Link to="/auth" className="button primary" onClick={() => window.scrollTo(0, 0)} >
+                        <Link to="/legal-help" className="button primary" onClick={() => window.scrollTo(0, 0)} >
                             Get Started
                             <FaArrowRight className="button-icon" />
                         </Link>
