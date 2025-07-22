@@ -1,22 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset 
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yourdomain.com/</loc>
-    <priority>1.00</priority>
+    <loc>https://www.nyaysethu.online/</loc>
+    <lastmod>2025-07-22</lastmod>
+    <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/legal-help</loc>
-    <priority>0.80</priority>
+    <loc>https://www.nyaysethu.online/legal-help</loc>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/nyaysathi</loc>
-    <priority>0.80</priority>
+    <loc>https://www.nyaysethu.online/nearby-help</loc>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/about</loc>
-    <priority>0.64</priority>
+    <loc>https://www.nyaysethu.online/nyaysathi</loc>
+    <priority>0.8</priority>
   </url>
-  <!-- Add other pages similarly -->
+  <url>
+    <loc>https://www.nyaysethu.online/about</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.nyaysethu.online/services</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.nyaysethu.online/resources</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.nyaysethu.online/success-stories</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.nyaysethu.online/profile</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.nyaysethu.online/auth</loc>
+    <priority>0.5</priority>
+  </url>
 </urlset>
