@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset 
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://yourdomain.com/</loc>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://yourdomain.com/legal-help</loc>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://yourdomain.com/nyaysathi</loc>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://yourdomain.com/about</loc>
+    <priority>0.64</priority>
+  </url>
+  <!-- Add other pages similarly -->
+</urlset>
