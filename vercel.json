@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "https://www.nyaysethu.online/:path*",
-      "destination": "https://nyaysethu.online/:path*",
-      "permanent": true
-    }
-  ]
-}
