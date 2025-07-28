@@ -1,14 +1,8 @@
 {
   "redirects": [
     {
-      "source": "/(.*)",
-      "destination": "https://nyaysethu.online/$1",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.nyaysethu.online"
-        }
-      ],
+      "source": "https://www.nyaysethu.online/:path*",
+      "destination": "https://nyaysethu.online/:path*",
       "permanent": true
     }
   ]
