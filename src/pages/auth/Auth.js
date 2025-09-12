@@ -201,7 +201,7 @@ export function Auth() {
         <div className="auth-page">
             {authMode === 'signin' ? (
                 <div className="auth-container">
-                    <h1>Welcome to <span className="highlight">न्यायSathi</span></h1>
+                    <h1>Welcome to <span className="highlight">न्यायSetu</span></h1>
                     <div className="signin-section">
                         <form className="signin-form" onSubmit={handleLogin}>
                             <input

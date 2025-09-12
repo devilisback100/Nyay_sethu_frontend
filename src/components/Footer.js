@@ -7,7 +7,7 @@ export function Footer() {
         <footer className="footer">
             <div className="footer-container">
                 <div className="footer-brand">
-                    <h2 className="brand-name">NyaySathi</h2>
+                    <h2 className="brand-name">NyaySetu</h2>
                     <p className="brand-tagline">Your trusted legal companion</p>
                 </div>
 

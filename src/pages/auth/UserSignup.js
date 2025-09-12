@@ -236,7 +236,7 @@ export function UserSignup({ onBack }) {
             <div className="signup-header">
                 <div className="signup-title">
                     <h2>Create Your Account</h2>
-                    <p>Join NyaySathi to get legal assistance</p>
+                    <p>Join NyaySetu to get legal assistance</p>
                 </div>
             </div>
             <form onSubmit={handleSubmit} className="signup-form">
