@@ -43,7 +43,7 @@ export function NyaySathiList() {
                         <div className="nyaysathi-card" key={id || `nyaySathi-${index}`}>
                             {nyaySathi.profile_picture ? (
                                 <img
-                                    src={nyaySathi.profile_picture}
+                                    src={nyaySathi.profile_picture?.secure_url}
                                     alt={nyaySathi.name}
                                     className="nyaysathi-image"
                                 />
@@ -54,7 +54,7 @@ export function NyaySathiList() {
                             )}
                             <h3>{nyaySathi.name}</h3>
                             <p>
-                                <strong>Type:</strong> {nyaySathi.type}
+                                <strong>Type:</strong> {nyaySathi.location.type}
                             </p>
                             <p>
                                 <strong>Consultation Fee:</strong> ₹{nyaySathi.consultation_fee}

@@ -115,7 +115,7 @@ export function Home() {
                 className={`hero ${isVisible.hero ? 'visible' : ''}`}
             >
                 <div className="hero-content">
-                    <h1>Justice Made <span className="highlight">Simple</span></h1>
+                    <h1>Justice Made <span className="Hero_highlight">Simple</span></h1>
                     <p className="hero-subtitle">Your AI-powered legal companion for quick and reliable legal assistance</p>
                     <div className="hero-actions" >
                         <Link to="/legal-help" className="button primary" onClick={() => window.scrollTo(0, 0)} >

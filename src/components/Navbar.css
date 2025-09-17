@@ -6,9 +6,9 @@
     top: 0;
     z-index: 1000;
     padding: 0.75rem;
-width: fit-content;
+    width: fit-content;
     min-width: 100%;
-        box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .navbar-container {
@@ -95,7 +95,10 @@ width: fit-content;
 }
 
 .nav-link[href="/profile"]:hover {
-    background: rgba(212, 175, 55, 0.1);
+
+    color: white !important;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 .nav-link.nav-cta {
@@ -129,10 +132,7 @@ width: fit-content;
     color: var(--bg-dark) !important;
 }
 
-.nav-profile:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-}
+
 
 .cta-button {
     background: var(--accent);
@@ -206,8 +206,9 @@ width: fit-content;
 }
 
 .logout-button:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
+    color: white !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        transform: translateY(-1px);
 }
 
 /* Improved mobile menu animation */

@@ -24,7 +24,7 @@ export function Footer() {
                 </div>
 
                 <div className="copyright">
-                    <p>© 2024 NyaySathi. All rights reserved.</p>
+                    <p>© 2024 NyaySetu. All rights reserved.</p>
                 </div>
             </div>
         </footer>

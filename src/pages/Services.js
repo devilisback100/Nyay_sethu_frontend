@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { FaBalanceScale, FaFileContract, FaUserShield, FaHandsHelping, FaGlobe, FaHeart } from 'react-icons/fa';
 import './Services.css';
 
@@ -81,7 +82,7 @@ export function Services() {
                 "Document analysis"
             ],
             available: false,
-            highlightText: "Premium"  // Changed from "Coming Soon"
+            highlightText: "Premium"
         },
         {
             icon: <FaUserShield />,
@@ -97,9 +98,20 @@ export function Services() {
                 "Case management"
             ],
             available: false,
-            highlightText: "Premium"  // Changed from "Coming Soon"
+            highlightText: "Premium"
         }
     ];
+
+    // Track expanded state individually for each card
+    const [expanded, setExpanded] = useState(Array(services.length).fill(false));
+
+    const toggleExpand = (index) => {
+        setExpanded((prev) => {
+            const newState = [...prev];
+            newState[index] = !newState[index];
+            return newState;
+        });
+    };
 
     return (
         <div className="services-page">
@@ -109,44 +121,65 @@ export function Services() {
             </div>
 
             <div className="services-grid">
-                {services.map((service, index) => (
-                    <div
-                        className={`service-card ${!service.available ? 'coming-soon' : ''} ${service.highlightText ? 'highlight-card' : ''}`}
-                        key={index}
-                    >
-                        <div className="service-content">
-                            <div className="service-header">
-                                <div className="service-icon">{service.icon}</div>
-                                {service.highlightText && (
-                                    <div className="service-highlight">{service.highlightText}</div>
-                                )}
-                                <h2>{service.title}</h2>
-                                <p className="service-description">{service.description}</p>
-                            </div>
+                {services.map((service, index) => {
+                    const isExpanded = expanded[index];
+                    const featuresToShow = isExpanded
+                        ? service.features
+                        : service.features.slice(0, Math.ceil(service.features.length * 0.3));
 
-                            <div className="service-price">
-                                <span className={`price ${service.price === 'Free' ? 'free' : 'premium'}`}>
-                                    {service.price}
-                                </span>
-                            </div>
+                    return (
+                        <div
+                            className={`service-card ${!service.available ? 'coming-soon' : ''} ${service.highlightText ? 'highlight-card' : ''}`}
+                            key={index}
+                        >
+                            <div className="service-content">
+                                <div className="service-header">
+                                    <div className="service-icon">{service.icon}</div>
+                                    {service.highlightText && (
+                                        <div className="service-highlight">{service.highlightText}</div>
+                                    )}
+                                    <h2>{service.title}</h2>
+                                    <p className="service-description">{service.description}</p>
+                                </div>
 
-                            <ul className="service-features">
-                                {service.features.map((feature, i) => (
-                                    <li key={i}>{feature}</li>
-                                ))}
-                            </ul>
+                                <div className="service-price">
+                                    <span className={`price ${service.price === 'Free' ? 'free' : 'premium'}`}>
+                                        {service.price}
+                                    </span>
+                                </div>
 
-                            <div className="service-footer">
-                                <button
-                                    className={`service-button ${!service.available ? 'disabled' : ''}`}
-                                    disabled={!service.available}
+                                {/* Features List with Smooth Transition */}
+                                <div
+                                    className={`service-features-wrapper ${isExpanded ? 'expanded' : ''}`}
                                 >
-                                    {service.available ? 'Get Started' : 'Coming Soon'}
-                                </button>
+                                    <ul className="service-features">
+                                        {featuresToShow.map((feature, i) => (
+                                            <li key={i}>{feature}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {service.features.length > featuresToShow.length && (
+                                    <button
+                                        className="see-more-btn"
+                                        onClick={() => toggleExpand(index)}
+                                    >
+                                        {isExpanded ? "See Less" : "See More"}
+                                    </button>
+                                )}
+
+                                <div className="service-footer">
+                                    <button
+                                        className={`service-button ${!service.available ? 'disabled' : ''}`}
+                                        disabled={!service.available}
+                                    >
+                                        {service.available ? 'Get Started' : 'Coming Soon'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

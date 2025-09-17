@@ -1,145 +1,245 @@
+/* Modern Appointment Schedule Styles */
+
 .appointment-schedule {
-    max-width: 800px;
-    margin: 2rem auto;
+    min-height: 100vh;
+    background: var(--surface-light);
+    padding: 2rem 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
     padding: 0 1rem;
 }
 
-.appointment-schedule h2 {
-    color: var(--primary);
+.main-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: grey;
+    margin-bottom: 3rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Progress Indicator - REMOVED */
+
+/* Form Container */
+.appointment-form {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.step-content {
+    padding: 3rem;
+    animation: slideIn 0.4s ease;
+}
+
+.step-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
     margin-bottom: 2rem;
     text-align: center;
 }
 
-.appointment-form {
-    background: #fff;
-    padding: 2rem;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    margin-top: 2rem;
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
+/* Form Elements */
 .form-group {
     margin-bottom: 1.5rem;
 }
 
-.form-group label {
+.form-label {
     display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #374151;
+    font-size: 0.95rem;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 1rem;
-    background: #fff;
-}
-
-.form-group textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.appointment-form button {
+.form-input,
+.form-textarea {
     width: 100%;
     padding: 1rem;
-    background: var(--primary);
-    color: var(--text-light);
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: 500;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: #fafafa;
     transition: all 0.3s ease;
+    font-family: inherit;
+    box-sizing: border-box;
 }
 
-.appointment-form button:hover:not(:disabled) {
-    background: var(--secondary);
-    transform: translateY(-2px);
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
 }
 
-.appointment-form button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+.form-input:hover,
+.form-textarea:hover {
+    border-color: #d1d5db;
+    background: white;
 }
 
-.progress-indicator {
-    display: flex;
-    align-items: center;
-    margin-bottom: 2rem;
-    position: relative;
-    padding: 0 2rem;
+.form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
 }
 
-.progress-indicator::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 15%;
-    right: 15%;
-    height: 2px;
-    background: var(--border);
-    z-index: 1;
-}
-
-.step {
-    position: relative;
-    z-index: 2;
-    background: #fff;
-    padding: 0 1rem;
-    flex: 1;
-    text-align: center;
-}
-
-.step.active {
-    opacity: 1;
-    color: var(--primary);
-    font-weight: 600;
-}
-
-.step::before {
-    content: '';
-    display: block;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: #fff;
-    border: 2px solid var(--border);
-    margin: 0 auto 0.5rem;
-}
-
-.step.active::before {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
+/* Button Styles */
 .button-group {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-top: 3rem;
 }
 
-.case-details,
-.scheduling-details {
-    animation: slideIn 0.3s ease;
+.btn {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
-.case-details h3,
-.scheduling-details h3 {
-    color: var(--primary);
-    margin-bottom: 1.5rem;
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(75, 85, 99, 0.4);
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner.large {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+    border-color: rgba(102, 126, 234, 0.3);
+    border-top-color: #667eea;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    gap: 1rem;
+    color: white;
+}
+
+/* Alert Messages */
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-error {
+    background: rgba(254, 242, 242, 0.95);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.alert-icon {
     font-size: 1.2rem;
 }
 
+/* Confirmation Card */
+.confirmation-card {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: bounceIn 0.6s ease;
+}
+
+.confirmation-card h3 {
+    font-size: 1.8rem;
+    color: #059669;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.confirmation-card p {
+    color: #6b7280;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Animations */
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: translateX(-20px);
     }
 
     to {
@@ -148,39 +248,146 @@
     }
 }
 
-@media (max-width: 768px) {
-    .appointment-schedule {
-        margin: 1rem;
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
     }
 
-    .appointment-form {
-        padding: 1.5rem;
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    70% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .appointment-schedule {
+        padding: 1rem 0;
+    }
+
+    .main-title {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .step-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .button-group {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
-    .progress-indicator {
-        padding: 0;
-    }
-
-    .progress-indicator::after {
-        left: 10%;
-        right: 10%;
-    }
-
-    .step {
+    .container {
         padding: 0 0.5rem;
-        font-size: 0.9rem;
+    }
+
+    .confirmation-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .success-icon {
+        font-size: 3rem;
     }
 }
 
-.error-message {
-    background: var(--bg-light);
-    color: var(--danger);
-    padding: 1rem;
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    text-align: center;
+@media (max-width: 480px) {
+    .step-content {
+        padding: 1.5rem 1rem;
+    }
+
+    .main-title {
+        font-size: 1.8rem;
+    }
+
+    .step-title {
+        font-size: 1.4rem;
+    }
+
+    .form-input,
+    .form-textarea {
+        padding: 0.875rem;
+    }
+
+    .btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .confirmation-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .confirmation-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .confirmation-card p {
+        font-size: 1rem;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .appointment-form {
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .confirmation-card {
+        background: rgba(255, 255, 255, 0.95);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+
+    .form-input,
+    .form-textarea {
+        border-width: 3px;
+    }
+
+    .btn {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .step-content {
+        animation: none;
+    }
+
+    .success-icon {
+        animation: none;
+    }
+
+    .btn,
+    .form-input,
+    .form-textarea,
+    .progress-step,
+    .step-circle {
+        transition: none;
+    }
 }

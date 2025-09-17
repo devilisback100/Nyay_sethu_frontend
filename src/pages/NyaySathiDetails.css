@@ -134,6 +134,25 @@
     box-shadow: var(--shadow);
 }
 
+.book-appointment-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    color: black;
+    background-color: var(--secondary);
+    border-left: 3px solid transparent;
+
+}
+.book-appointment-btn:hover{
+    transform: translateY(-3px);
+        box-shadow: var(--shadow);
+        border-left: 3px solid var(--primary);
+}
+
 /* True responsive design that adapts to viewport width */
 @media screen and (min-width: 768px) {
     .nyaysathi-details {

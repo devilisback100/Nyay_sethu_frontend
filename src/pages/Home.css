@@ -90,13 +90,13 @@ p {
     margin-bottom: var(--spacing-md);
 }
 
-.highlight {
+.Hero_highlight {
     color: var(--secondary);
     position: relative;
     display: inline-block;
 }
 
-.highlight::after {
+.Hero_highlight::after {
     content: '';
     position: absolute;
     width: 100%;
@@ -686,7 +686,26 @@ p {
     letter-spacing: 1px;
     margin-bottom: 0;
 }
+.disabled {
+    cursor: not-allowed;
+    /* shows a "no" sign cursor */
+    position: relative;
+}
 
+.disabled:hover::after {
+    content: "Coming Soon";
+    position: absolute;
+    bottom: 120%;
+    /* adjust position */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+}
 .cta-divider {
     width: 1px;
     height: 80px;

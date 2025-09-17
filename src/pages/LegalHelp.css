@@ -74,7 +74,7 @@ body {
 .legal-help {
     display: flex;
     height: 100vh;
-    height: calc(var(--vh, 1vh) * 100);
+    height: calc(var(--vh, 1vh) * 93);
     /* Dynamic viewport height for mobile */
     position: relative;
     overflow: hidden;

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSignOutAlt, FaClock, FaMoneyBillWave, FaStar, FaCalendarAlt, FaTimes } from 'react-icons/fa';
+import { FaSignOutAlt, FaClock, FaMoneyBillWave, FaStar, FaCalendarAlt, FaTimes, FaCog } from 'react-icons/fa';
+import { ProfileUpdate } from './ProfileUpdate';
 import './NyaySathiProfile.css';
-
 export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
     const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState('overview');
@@ -332,11 +332,11 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                 return (
                     <div>
                         <h2>Details</h2>
-                        <p><strong>Type:</strong> {profile.type || 'N/A'}</p>
-                        <p><strong>Experience:</strong> {profile.experience || 'N/A'} years</p>
-                        <p><strong>Bar Council ID:</strong> {profile.bar_council_id || 'N/A'}</p>
+                        <p><strong>Type:</strong> {profile.location.type || 'N/A'}</p>
+                        <p><strong>Experience:</strong> {profile.years_of_experience } years</p>
+                        <p><strong>Bar Council ID:</strong> {profile.bar_council_number || 'N/A'}</p>
                         <p><strong>Languages:</strong> {profile.languages?.join(', ') || 'N/A'}</p>
-                        <p><strong>Specializations:</strong> {profile.specializations?.join(', ') || 'N/A'}</p>
+                        <p><strong>Specializations:</strong> {profile.specialization || 'N/A'}</p>
                     </div>
                 );
             case 'timings':
@@ -440,6 +440,8 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                         </ul>
                     </div>
                 );
+                case 'settings':
+                return <ProfileUpdate profile={profile} onProfileUpdate={onProfileUpdate} />;
             default:
                 return <p>Select a section to view details.</p>;
         }
@@ -473,12 +475,15 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                     <p>{profile.type || 'Type not provided'}</p>
                 </div>
                 <nav className="dashboard-nav">
-                    {['overview', 'details', 'timings', 'ratings', 'appointments'].map((section) => (
+                    {/* UPDATED: Added 'settings' to the navigation map */}
+                    {['overview', 'details', 'timings', 'ratings', 'appointments', 'settings'].map((section) => (
                         <button
                             key={section}
                             className={activeSection === section ? 'active' : ''}
                             onClick={() => setActiveSection(section)}
                         >
+                            {/* Optional: Add an icon for the settings button */}
+                            {section === 'settings' && <FaCog style={{ marginRight: '8px' }} />}
                             {section.charAt(0).toUpperCase() + section.slice(1)}
                         </button>
                     ))}

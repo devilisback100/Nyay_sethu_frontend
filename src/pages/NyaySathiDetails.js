@@ -11,7 +11,15 @@ export function NyaySathiDetails() {
     const navigate = useNavigate();
 
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ;
-
+    const getProfileImageUrl = (pictureData) => {
+        if (typeof pictureData === 'string' && pictureData) {
+            return pictureData; // It's a direct URL string
+        }
+        if (typeof pictureData === 'object' && pictureData?.secure_url) {
+            return pictureData.secure_url; // It's an object with a secure_url property
+        }
+        return null; // Return null if no valid image source is found
+    };
     useEffect(() => {
         const fetchNyaySathiDetails = async () => {
             try {
@@ -56,23 +64,17 @@ export function NyaySathiDetails() {
             </div>
         );
     }
-
+    const imageUrl = getProfileImageUrl(nyaySathi.profile_picture);
     return (
         <div className="nyaysathi-details">
-            {nyaySathi.profile_picture ? (
-                <img
-                    src={nyaySathi.profile_picture}
-                    alt={nyaySathi.name}
-                    className="details-image"
-                />
+            {imageUrl ? (
+                <img src={imageUrl} alt={nyaySathi.name} className="details-image profile-avatar"  />
             ) : (
-                <div className="details-avatar">
-                    {nyaySathi.name?.charAt(0).toUpperCase() || '?'}
-                </div>
+                <div className="details-avatar">{nyaySathi.name?.charAt(0).toUpperCase() || '?'}</div>
             )}
             <h1>{nyaySathi.name}</h1>
             <p>
-                <strong>Type:</strong> {nyaySathi.type}
+                <strong>Type:</strong> {nyaySathi.location.type}
             </p>
             <p>
                 <strong>Consultation Fee:</strong> ₹{nyaySathi.consultation_fee}
@@ -87,7 +89,7 @@ export function NyaySathiDetails() {
                 <strong>Available Timings:</strong> {nyaySathi.available_timings?.join(', ') || 'N/A'}
             </p>
             <p>
-                <strong>Specialization:</strong> {nyaySathi.specialization?.join(', ') || 'N/A'}
+                <strong>Specialization:</strong> {nyaySathi.specialization}
             </p>
 
             <div className="appointment-section">
