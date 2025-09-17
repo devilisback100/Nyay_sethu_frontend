@@ -2,6 +2,36 @@
     display: flex;
     min-height: 100vh;
     background: var(--bg-light);
+    position: relative;
+}
+
+/* Sidebar toggle button - only visible on mobile */
+.Nyay-sidebar-toggle {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 1001;
+    background: var(--primary);
+    color: var(--text-light);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    font-size: 1.2rem;
+}
+
+/* Sidebar overlay for mobile */
+.Nyay-sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
 }
 
 .dashboard-sidebar {
@@ -13,11 +43,28 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1000;
+}
+
+/* Collapsed state - completely hide the sidebar */
+.dashboard-sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
 }
 
 .profile-brief {
     text-align: center;
     margin-bottom: 1rem;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-sidebar.collapsed .profile-brief {
+    opacity: 0;
 }
 
 .profile-avatar {
@@ -61,6 +108,13 @@
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
+    transition: opacity 0.3s ease;
+}
+
+/* Hide navigation when collapsed */
+.dashboard-sidebar.collapsed .dashboard-nav {
+    opacity: 0;
+    visibility: hidden;
 }
 
 .dashboard-nav ul {
@@ -97,6 +151,8 @@
     cursor: pointer;
     text-align: left;
     transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
 }
 
 .dashboard-nav button.active {
@@ -118,6 +174,8 @@
     border-radius: var(--radius);
     cursor: pointer;
     transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
 }
 
 .logout-button:hover {
@@ -128,6 +186,12 @@
     flex: 1;
     padding: 2rem;
     background: var(--bg-light);
+    transition: margin-left 0.3s ease;
+}
+
+/* When sidebar is collapsed, expand content to full width */
+.dashboard-content.expanded {
+    margin-left: 0;
 }
 
 .dashboard-content section {
@@ -172,18 +236,75 @@
     color: var(--primary);
 }
 
+/* Mobile styles */
 @media (max-width: 768px) {
-    .nyaysathi-dashboard {
-        grid-template-columns: 1fr;
+    .Nyay-sidebar-toggle {
+        display: block;
+    }
+
+    .Nyay-sidebar-overlay {
+        display: block;
     }
 
     .dashboard-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        width: 250px;
+    }
+
+    .dashboard-sidebar:not(.collapsed) {
+        transform: translateX(0);
+    }
+
+    .dashboard-sidebar.collapsed {
+        transform: translateX(-100%);
+        width: 250px;
+        /* Keep original width for animation */
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .dashboard-content {
         padding: 1rem;
+        padding-top: 4rem;
+        /* Account for toggle button */
+        margin-left: 0;
+    }
+
+    .dashboard-content.expanded {
+        margin-left: 0;
     }
 }
 
-/* Add these styles to your existing NyaySathiProfile.css file */
+/* Desktop styles */
+@media (min-width: 769px) {
+    
 
+    .Nyay-sidebar-overlay {
+        display: none;
+    }
+
+    .dashboard-sidebar {
+        position: fixed;
+        height: 100vh;
+        transform: none;
+        top: 0;
+    }
+
+    .dashboard-sidebar.collapsed {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* Existing appointment styles */
 .clickable-appointment {
     cursor: pointer;
     transition: background-color 0.2s;
@@ -272,4 +393,55 @@
 
 .start-chat-btn:hover {
     background-color: #218838;
+}
+
+/* Appointment request cards */
+.appointment-request-card {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+
+.appointment-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.accept-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.decline-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.error-message {
+    background: #fee;
+    color: var(--danger);
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    margin: 1rem 0;
+}
+
+.default-avatar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--secondary);
+    border-radius: 50%;
 }

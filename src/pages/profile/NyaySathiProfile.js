@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSignOutAlt, FaClock, FaMoneyBillWave, FaStar, FaCalendarAlt, FaTimes, FaCog } from 'react-icons/fa';
+import { FaSignOutAlt, FaClock, FaMoneyBillWave, FaStar, FaCalendarAlt, FaTimes, FaCog, FaThList  } from 'react-icons/fa';
 import { ProfileUpdate } from './ProfileUpdate';
 import './NyaySathiProfile.css';
 export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
@@ -15,6 +15,7 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -45,7 +46,9 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
             };
         }
     }, [BACKEND_URL]);
-
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
+    };
     const categorizedAppointments = useMemo(() => {
         if (!Array.isArray(appointments)) {
             return {
@@ -66,6 +69,22 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
             ),
         };
     }, [appointments]);
+    useEffect(() => {
+        const checkScreenSize = () => {
+            const isMobile = window.innerWidth <= 768; // Tablets and phones
+            setIsCollapsed(isMobile);
+        };
+
+        // Check on initial load
+        checkScreenSize();
+
+        // Add event listener for window resize
+        window.addEventListener('resize', checkScreenSize);
+
+        // Cleanup
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
+
 
     useEffect(() => {
         setRequestedAppointments(categorizedAppointments.requested);
@@ -170,6 +189,9 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
     const handleAppointmentClick = (appointment) => {
         setSelectedAppointment(appointment);
     };
+  
+
+      
 
     const closeAppointmentDetails = () => {
         setSelectedAppointment(null);
@@ -276,6 +298,7 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
             </div>
         );
     };
+    
 
     const renderAppointmentDetails = () => {
         if (!selectedAppointment) return null;
@@ -333,7 +356,7 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                     <div>
                         <h2>Details</h2>
                         <p><strong>Type:</strong> {profile.location.type || 'N/A'}</p>
-                        <p><strong>Experience:</strong> {profile.years_of_experience } years</p>
+                        <p><strong>Experience:</strong> {profile.years_of_experience} years</p>
                         <p><strong>Bar Council ID:</strong> {profile.bar_council_number || 'N/A'}</p>
                         <p><strong>Languages:</strong> {profile.languages?.join(', ') || 'N/A'}</p>
                         <p><strong>Specializations:</strong> {profile.specialization || 'N/A'}</p>
@@ -440,7 +463,7 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                         </ul>
                     </div>
                 );
-                case 'settings':
+            case 'settings':
                 return <ProfileUpdate profile={profile} onProfileUpdate={onProfileUpdate} />;
             default:
                 return <p>Select a section to view details.</p>;
@@ -449,7 +472,17 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
 
     return (
         <div className="nyaysathi-dashboard">
-            <div className="dashboard-sidebar">
+            {/* Mobile overlay when sidebar is open on mobile */}
+            {!isCollapsed && window.innerWidth <= 768 && (
+                <div className="Nyay-sidebar-overlay" onClick={toggleSidebar}></div>
+            )}
+
+            {/* Toggle button for mobile */}
+            <button className="Nyay-sidebar-toggle" onClick={toggleSidebar}>
+                {isCollapsed ? <FaThList  /> : <FaTimes />}
+            </button>
+
+            <div className={`dashboard-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
                 <div className="profile-brief">
                     <div className="profile-avatar" onClick={handleImageClick}>
                         {profile.profile_picture?.secure_url ? (
@@ -457,7 +490,7 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                                 src={profile.profile_picture.secure_url}
                                 alt={profile.name || 'NyaySathi'}
                                 onError={(e) => {
-                                    e.target.onerror = null; // Prevent infinite loop
+                                    e.target.onerror = null;
                                     e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBhbGlnbm1lbnQtYmFzZWxpbmU9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmaWxsPSIjOTk5OTk5Ij5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=";
                                 }}
                             />
@@ -471,28 +504,43 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                             onChange={handleImageUpload}
                         />
                     </div>
-                    <h3>{profile.name || 'Name not available'}</h3>
-                    <p>{profile.type || 'Type not provided'}</p>
+                    {!isCollapsed && (
+                        <>
+                            <h3>{profile.name || 'Name not available'}</h3>
+                            <p>{profile.type || 'Type not provided'}</p>
+                        </>
+                    )}
                 </div>
+
                 <nav className="dashboard-nav">
-                    {/* UPDATED: Added 'settings' to the navigation map */}
                     {['overview', 'details', 'timings', 'ratings', 'appointments', 'settings'].map((section) => (
                         <button
                             key={section}
                             className={activeSection === section ? 'active' : ''}
-                            onClick={() => setActiveSection(section)}
+                            onClick={() => {
+                                setActiveSection(section);
+                                // Auto-collapse on mobile after selection
+                                if (window.innerWidth <= 768) {
+                                    setIsCollapsed(true);
+                                }
+                            }}
                         >
-                            {/* Optional: Add an icon for the settings button */}
                             {section === 'settings' && <FaCog style={{ marginRight: '8px' }} />}
-                            {section.charAt(0).toUpperCase() + section.slice(1)}
+                            <span>{section.charAt(0).toUpperCase() + section.slice(1)}</span>
                         </button>
                     ))}
-                    <button className="logout-button" onClick={handleLogout}>
-                        <FaSignOutAlt /> Logout
+
+                    <button
+                        className="logout-button"
+                        onClick={handleLogout}
+                    >
+                        <FaSignOutAlt style={{ marginRight: '8px' }} />
+                        <span>Logout</span>
                     </button>
                 </nav>
             </div>
-            <div className="dashboard-content">
+
+            <div className={`dashboard-content ${isCollapsed ? 'expanded' : ''}`}>
                 {renderActiveSection()}
                 {loading && <p>Loading users...</p>}
                 {error && <p className="error-message">{error}</p>}
@@ -507,6 +555,7 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
                     </div>
                 )}
             </div>
+
             {selectedAppointment && renderAppointmentDetails()}
         </div>
     );

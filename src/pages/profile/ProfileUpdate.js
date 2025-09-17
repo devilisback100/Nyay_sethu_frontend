@@ -1,5 +1,5 @@
 // frontend: src/components/ProfileUpdate.js
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import './ProfileUpdate.css'; // We'll create this file next
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -30,6 +30,30 @@ export function ProfileUpdate({ profile, onProfileUpdate }) {
 
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [passwordRequirements, setPasswordRequirements] = useState({
+        length: false,
+        uppercase: false,
+        lowercase: false,
+        number: false,
+        special: false,
+    });
+    useEffect(() => {
+        const newPass = passwordData.new_password;
+        if (newPass) {
+            setPasswordRequirements({
+                length: newPass.length >= 8,
+                uppercase: /[A-Z]/.test(newPass),
+                lowercase: /[a-z]/.test(newPass),
+                number: /\d/.test(newPass),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(newPass),
+            });
+        }
+    }, [passwordData.new_password]);
+
+
+    const handlePasswordChange = (e) => {
+        setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
+    };
 
     const handleFormChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -58,9 +82,6 @@ export function ProfileUpdate({ profile, onProfileUpdate }) {
         }));
     };
 
-    const handlePasswordChange = (e) => {
-        setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
-    };
 
         const handleProfileSubmit = async (e) => {
             e.preventDefault();
@@ -105,6 +126,13 @@ export function ProfileUpdate({ profile, onProfileUpdate }) {
             return;
         }
 
+        // **NEW**: Check if all password requirements are met before submitting
+        const allReqsMet = Object.values(passwordRequirements).every(Boolean);
+        if (!allReqsMet) {
+            setError('Your new password does not meet all the strength requirements.');
+            return;
+        }
+
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${BACKEND_URL}/api/nyaysathi/change-password`, {
@@ -125,7 +153,7 @@ export function ProfileUpdate({ profile, onProfileUpdate }) {
             }
 
             setMessage('Password changed successfully!');
-            setPasswordData({ old_password: '', new_password: '', confirm_password: '' }); // Clear fields on success
+            setPasswordData({ old_password: '', new_password: '', confirm_password: '' });
         } catch (err) {
             setError(err.message);
         }
@@ -205,6 +233,27 @@ export function ProfileUpdate({ profile, onProfileUpdate }) {
                     <div className="form-group">
                         <label htmlFor="new_password">New Password</label>
                         <input type="password" id="new_password" name="new_password" value={passwordData.new_password} onChange={handlePasswordChange} required />
+
+                        {/* **NEW**: Real-time password strength checker UI */}
+                        {passwordData.new_password && (
+                            <ul className="password-strength-checker">
+                                <li className={passwordRequirements.length ? 'met' : 'unmet'}>
+                                    At least 8 characters long
+                                </li>
+                                <li className={passwordRequirements.lowercase ? 'met' : 'unmet'}>
+                                    Contains a lowercase letter (a-z)
+                                </li>
+                                <li className={passwordRequirements.uppercase ? 'met' : 'unmet'}>
+                                    Contains an uppercase letter (A-Z)
+                                </li>
+                                <li className={passwordRequirements.number ? 'met' : 'unmet'}>
+                                    Contains a number (0-9)
+                                </li>
+                                <li className={passwordRequirements.special ? 'met' : 'unmet'}>
+                                    Contains a special character (!@#...)
+                                </li>
+                            </ul>
+                        )}
                     </div>
                     <div className="form-group">
                         <label htmlFor="confirm_password">Confirm New Password</label>
