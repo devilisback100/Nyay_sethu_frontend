@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FaImage, FaVideo, FaPaperPlane, FaPlus, FaFilePdf, FaDownload } from 'react-icons/fa';
+import { FaImage, FaVideo, FaPaperPlane, FaPlus, FaFilePdf, FaDownload, FaTimes, FaEye } from 'react-icons/fa';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -18,6 +18,110 @@ const truncateFileName = (fileName, maxLength = 12) => {
     const name = fileName.substring(0, maxLength);
     return `${name}...${extension ? '.' + extension : ''}`;
 };
+
+// Helper function to format timestamps consistently
+const formatTimestamp = (timestamp) => {
+    // Make sure we're working with a string for the check
+    let timestampStr = (timestamp instanceof Date) ? timestamp.toISOString() : String(timestamp);
+
+    // If the string doesn't have 'Z' or a timezone offset (+/-), assume UTC by adding 'Z'
+    const hasTimezone = timestampStr.endsWith('Z') || /[-+]\d{2}:\d{2}$/.test(timestampStr);
+    if (!hasTimezone) {
+        timestampStr += 'Z';
+    }
+
+    const date = new Date(timestampStr);
+
+    if (isNaN(date.getTime())) {
+        return "Invalid Date";
+    }
+
+    return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+};
+
+// Helper function to get current timestamp in ISO format
+const getCurrentTimestamp = () => {
+    return new Date().toISOString();
+};
+
+// Media Preview Component
+function MediaPreview({ file, onRemove, onSend }) {
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    useEffect(() => {
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+    }, [file]);
+
+    if (!file) return null;
+
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    const isPdf = file.type === 'application/pdf';
+
+    return (
+        <div className="media-preview-overlay">
+            <div className="media-preview-container">
+                <div className="preview-header">
+                    <h3>Preview {file.name}</h3>
+                    <button className="close-preview" onClick={onRemove}>
+                        <FaTimes />
+                    </button>
+                </div>
+
+                <div className="preview-content">
+                    {isImage && (
+                        <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="preview-image"
+                        />
+                    )}
+
+                    {isVideo && (
+                        <video
+                            src={previewUrl}
+                            controls
+                            className="preview-video"
+                        />
+                    )}
+
+                    {isPdf && (
+                        <div className="preview-pdf">
+                            <FaFilePdf size={64} />
+                            <p>PDF Document</p>
+                            <p>{file.name}</p>
+                        </div>
+                    )}
+
+                    {!isImage && !isVideo && !isPdf && (
+                        <div className="preview-file">
+                            <FaDownload size={64} />
+                            <p>File: {file.name}</p>
+                            <p>Size: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="preview-actions">
+                    <button className="cancel-btn" onClick={onRemove}>
+                        Cancel
+                    </button>
+                    <button className="send-btn" onClick={onSend}>
+                        Send <FaPaperPlane />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 // Separate VideoPlayer component to handle video rendering and hooks
 function VideoPlayer({ msg, msgId, isExpanded, videoRefs, toggleVideoPlayer, setError }) {
@@ -175,19 +279,17 @@ export function DirectChat({ chatId }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
+    const [showMediaPreview, setShowMediaPreview] = useState(false);
     const [loading, setLoading] = useState(false);
     const [chatDetails, setChatDetails] = useState(null);
     const [partnerDetails, setPartnerDetails] = useState(null);
     const [error, setError] = useState(null);
-    // eslint-disable-next-line no-unused-vars
     const [lastFetchTime, setLastFetchTime] = useState(0);
     const [isUserActive, setIsUserActive] = useState(true);
     const [fetchingMessages, setFetchingMessages] = useState(false);
     const [pdfViewers, setPdfViewers] = useState({});
     const [videoPlayers, setVideoPlayers] = useState({});
-    // eslint-disable-next-line no-unused-vars
     const [lastMessageId, setLastMessageId] = useState(null);
-    // eslint-disable-next-line no-unused-vars
     const [autoScroll, setAutoScroll] = useState(true);
 
     const messagesEndRef = useRef(null);
@@ -196,6 +298,7 @@ export function DirectChat({ chatId }) {
     const pollingTimeoutRef = useRef(null);
     const videoRefs = useRef({});
     const chatContainerRef = useRef(null);
+    const isPollingRef = useRef(false);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -205,15 +308,22 @@ export function DirectChat({ chatId }) {
     const chat_id = chatId || chatIdFromParams || chatIdFromState;
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-    const ACTIVE_POLLING_INTERVAL = 10000;
-    const INACTIVE_POLLING_INTERVAL = 30000;
+    const ACTIVE_POLLING_INTERVAL = 3000;
+    const INACTIVE_POLLING_INTERVAL = 10000;
 
     const userType = localStorage.getItem('userType');
     const isNyaySathi = userType === 'nyaysathi';
 
+    // Memoize scroll to bottom function
+    const scrollToBottom = useCallback(() => {
+        if (autoScroll && messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [autoScroll]);
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        scrollToBottom();
+    }, [messages, scrollToBottom]);
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -255,30 +365,102 @@ export function DirectChat({ chatId }) {
         };
     }, [chat_id, navigate]);
 
+    // Improved message polling with better duplicate detection
+    const fetchNewMessages = useCallback(async () => {
+        if (!chat_id || !chatDetails || isPollingRef.current) return;
+
+        isPollingRef.current = true;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            // Get the latest message timestamp for better filtering
+            const latestTimestamp = messages.length > 0
+                ? Math.max(...messages.map(msg => new Date(msg.timestamp).getTime()))
+                : 0;
+
+            const response = await fetch(`${BACKEND_URL}/api/chats/${chat_id}/messages?since=${latestTimestamp}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                console.warn('Failed to fetch new messages:', response.status);
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.messages?.length) {
+                // More robust duplicate detection
+                const newMessages = data.messages.filter(newMsg => {
+                    return !messages.some(existingMsg => {
+                        // Check by ID first (most reliable)
+                        if (newMsg.id && existingMsg.id) {
+                            return newMsg.id === existingMsg.id;
+                        }
+
+                        // Fallback to content comparison
+                        return (
+                            existingMsg.sender_id === newMsg.sender_id &&
+                            existingMsg.receiver_id === newMsg.receiver_id &&
+                            existingMsg.message_text === newMsg.message_text &&
+                            Math.abs(new Date(existingMsg.timestamp).getTime() - new Date(newMsg.timestamp).getTime()) < 1000
+                        );
+                    });
+                });
+
+                if (newMessages.length > 0) {
+                    console.log('Adding new messages:', newMessages);
+                    setMessages(prevMessages => {
+                        const combined = [...prevMessages, ...newMessages];
+                        // Sort by timestamp to ensure proper order
+                        return combined.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    });
+                    setLastMessageId(newMessages[newMessages.length - 1]?.id);
+                }
+            }
+        } catch (err) {
+            console.warn('Error fetching new messages:', err);
+        } finally {
+            isPollingRef.current = false;
+        }
+    }, [chat_id, chatDetails, messages]);
+
+    // Separate polling effect
     useEffect(() => {
         if (!chat_id || !chatDetails) return;
 
-        const scheduleNextFetch = () => {
-            clearTimeout(pollingTimeoutRef.current);
-            pollingTimeoutRef.current = setTimeout(() => {
-                if (!fetchingMessages) {
-                    fetchChatDetails(false).finally(scheduleNextFetch);
-                } else {
-                    scheduleNextFetch();
-                }
-            }, isUserActive ? ACTIVE_POLLING_INTERVAL : INACTIVE_POLLING_INTERVAL);
+        const pollMessages = () => {
+            if (!isPollingRef.current) {
+                fetchNewMessages();
+            }
+
+            // Schedule next poll
+            pollingTimeoutRef.current = setTimeout(
+                pollMessages,
+                isUserActive ? ACTIVE_POLLING_INTERVAL : INACTIVE_POLLING_INTERVAL
+            );
         };
 
-        scheduleNextFetch();
+        // Start polling
+        const initialDelay = setTimeout(pollMessages, ACTIVE_POLLING_INTERVAL);
 
-        return () => clearTimeout(pollingTimeoutRef.current);
-    }, [chat_id, chatDetails, isUserActive, fetchingMessages]);
+        return () => {
+            clearTimeout(initialDelay);
+            clearTimeout(pollingTimeoutRef.current);
+        };
+    }, [chat_id, chatDetails, isUserActive, fetchNewMessages]);
 
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 setIsUserActive(true);
-                fetchChatDetails(true);
+                // Fetch new messages when tab becomes visible
+                setTimeout(() => fetchNewMessages(), 100);
             } else {
                 setIsUserActive(false);
             }
@@ -286,7 +468,7 @@ export function DirectChat({ chatId }) {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [chat_id]);
+    }, [fetchNewMessages]);
 
     useEffect(() => {
         if (!chatDetails) return;
@@ -302,10 +484,10 @@ export function DirectChat({ chatId }) {
     const removeDuplicateMessages = (messageArray) => {
         const uniqueMessages = new Map();
         messageArray.forEach(msg => {
-            const key = msg.id || `${msg.timestamp}-${msg.sender_id}-${msg.message_text}`;
+            const key = msg.id || `${msg.timestamp}-${msg.sender_id}-${msg.message_text || msg.file_url}`;
             uniqueMessages.set(key, msg);
         });
-        return Array.from(uniqueMessages.values());
+        return Array.from(uniqueMessages.values()).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     };
 
     const fetchChatDetails = async (fullRefresh = false) => {
@@ -380,8 +562,9 @@ export function DirectChat({ chatId }) {
         }
     };
 
-    const handleSendMessage = async () => {
-        if (!newMessage.trim() && !selectedImage) return;
+    const handleSendMessage = async (fileOnly = false) => {
+        if (!fileOnly && !newMessage.trim() && !selectedImage) return;
+        if (fileOnly && !selectedImage) return;
 
         const senderId = localStorage.getItem('userId');
         let receiverId = isNyaySathi ? chatDetails?.user_id : chatDetails?.nyaysathi_id;
@@ -416,8 +599,10 @@ export function DirectChat({ chatId }) {
 
         try {
             const token = localStorage.getItem('token');
+            const currentTime = getCurrentTimestamp(); // Use consistent timestamp
 
-            if (newMessage.trim()) {
+            // Send text message first if not fileOnly
+            if (!fileOnly && newMessage.trim()) {
                 const res = await fetch(`${BACKEND_URL}/api/chats/messages/add/${chat_id}`, {
                     method: 'POST',
                     headers: {
@@ -429,6 +614,7 @@ export function DirectChat({ chatId }) {
                         receiver_id: receiverId,
                         message_text: newMessage.trim(),
                         message_type: 'text',
+                        timestamp: currentTime, // Include timestamp in request
                     }),
                 });
 
@@ -437,22 +623,30 @@ export function DirectChat({ chatId }) {
                     throw new Error(`Text send failed: ${errData.error}`);
                 }
 
+                const responseData = await res.json();
+
+                // Add the new message immediately with proper timestamp
                 const newMsg = {
+                    id: responseData.message_id || Date.now(),
                     sender_id: senderId,
                     receiver_id: receiverId,
                     message_text: newMessage.trim(),
                     message_type: 'text',
-                    timestamp: new Date().toISOString(),
+                    timestamp: currentTime, // Use the same timestamp
                 };
+
                 setMessages(prev => [...prev, newMsg]);
                 setNewMessage('');
             }
 
+            // Send file if selected
             if (selectedImage) {
                 const formData = new FormData();
                 formData.append('file', selectedImage);
                 formData.append('sender_id', senderId);
                 formData.append('receiver_id', receiverId);
+                formData.append('timestamp', currentTime); // Include timestamp
+                
 
                 const res = await fetch(`${BACKEND_URL}/api/chats/messages/upload/${chat_id}`, {
                     method: 'POST',
@@ -467,8 +661,10 @@ export function DirectChat({ chatId }) {
                     throw new Error(`File upload failed: ${errData.error}`);
                 }
 
-                await fetchChatDetails(true);
+                // Refresh to get the file message with proper URL
+                setTimeout(() => fetchNewMessages(), 500);
                 setSelectedImage(null);
+                setShowMediaPreview(false);
             }
 
             setIsUserActive(true);
@@ -497,6 +693,16 @@ export function DirectChat({ chatId }) {
         }
 
         setSelectedImage(file);
+        setShowMediaPreview(true);
+    };
+
+    const handleRemoveMedia = () => {
+        setSelectedImage(null);
+        setShowMediaPreview(false);
+    };
+
+    const handleSendMediaOnly = () => {
+        handleSendMessage(true);
     };
 
     const togglePdfPreview = (msgId) => {
@@ -653,6 +859,15 @@ export function DirectChat({ chatId }) {
 
     return (
         <div className="direct-chat">
+            {/* Media Preview Modal */}
+            {showMediaPreview && selectedImage && (
+                <MediaPreview
+                    file={selectedImage}
+                    onRemove={handleRemoveMedia}
+                    onSend={handleSendMediaOnly}
+                />
+            )}
+
             {error && (
                 <div className="error-message">
                     <p>{error}</p>
@@ -714,7 +929,7 @@ export function DirectChat({ chatId }) {
                 ) : (
                     messages.map((msg, i) => (
                         <div
-                            key={msg.id || `${msg.timestamp}-${msg.sender_id}-${i}`}
+                            key={msg.id || `${formatTimestamp(msg.timestamp)}-${msg.sender_id}-${i}`}
                             className={`message ${isCurrentUserSender(msg.sender_id) ? 'sent' : 'received'}`}
                         >
                             {msg.message_type === 'file' && msg.file_url && (
@@ -767,7 +982,7 @@ export function DirectChat({ chatId }) {
                             )}
                             {msg.message_text && <div className="message-text">{msg.message_text}</div>}
                             <span className="message-time">
-                                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatTimestamp(msg.timestamp)}
                             </span>
                         </div>
                     ))
@@ -804,19 +1019,28 @@ export function DirectChat({ chatId }) {
                     >
                         <FaImage />
                     </button>
+                    {selectedImage && !showMediaPreview && (
+                        <button
+                            className="preview-button"
+                            onClick={() => setShowMediaPreview(true)}
+                            title="Preview media"
+                        >
+                            <FaEye />
+                        </button>
+                    )}
                     <button
                         className="send-button"
-                        onClick={handleSendMessage}
+                        onClick={() => handleSendMessage()}
                         disabled={loading}
                         title="Send message"
                     >
                         <FaPaperPlane />
                     </button>
                 </div>
-                {selectedImage && (
+                {selectedImage && !showMediaPreview && (
                     <div className="selected-file-info">
                         <span>{selectedImage.name}</span>
-                        <button onClick={() => setSelectedImage(null)}>Remove</button>
+                        <button onClick={handleRemoveMedia}>Remove</button>
                     </div>
                 )}
             </div>

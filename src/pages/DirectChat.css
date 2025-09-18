@@ -1050,3 +1050,109 @@ button:disabled {
     background: var(--primary);
     margin-left: auto;
 }
+/* Media Preview Styles */
+.media-preview-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.media-preview-container {
+    background: white;
+    border-radius: 12px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.preview-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.close-preview {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.preview-content {
+    padding: 20px;
+    text-align: center;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
+}
+
+.preview-video {
+    max-width: 100%;
+    max-height: 50vh;
+}
+
+.preview-pdf,
+.preview-file {
+    padding: 40px;
+}
+
+.preview-actions {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid #eee;
+    justify-content: flex-end;
+}
+
+.cancel-btn,
+.send-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.cancel-btn {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.send-btn {
+    background: #3b82f6;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preview-button {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+}

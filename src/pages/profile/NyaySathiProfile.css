@@ -408,6 +408,12 @@
     display: flex;
     gap: 0.5rem;
     margin-top: 1rem;
+    justify-content: center;
+}
+.upcoming-appointments-list{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .accept-btn {
