@@ -17,6 +17,7 @@ const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 export function FindHelp() {
     const [userLocation, setUserLocation] = useState(null);
+    const [allPlaces, setAllPlaces] = useState([]);
     const [places, setPlaces] = useState([]);
     const [selectedPlace, setSelectedPlace] = useState(null);
     const [directions, setDirections] = useState(null);
@@ -221,29 +222,17 @@ export function FindHelp() {
             Promise.all(detailPromises).then(detailedResults => {
                 const validResults = detailedResults.filter(Boolean);
 
-                // Apply filters after getting detailed results
-                const filteredResults = validResults.filter(place => {
-                    // Rating filter
-                    if ((place.rating || 0) < filters.minRating) return false;
+                setAllPlaces(validResults);
+                setPlaces(validResults);
 
-                    // Open now filter - Fixed logic
-                    if (filters.openNow) {
-                        const openStatus = isPlaceOpen(place);
-                        return openStatus === true; // Only include if definitely open
-                    }
-
-                    return true;
-                });
-
-                if (filteredResults.length === 0) {
+                if (validResults.length === 0) {
                     setStatusMessage('No results match your current filters.');
                 } else {
-                    setStatusMessage(`Found ${filteredResults.length} result(s)`);
+                    setStatusMessage(`Found ${validResults.length} result(s)`);
                 }
 
-                setPlaces(filteredResults);
-                setShowMore(filteredResults.length > RESULTS_PER_PAGE);
-                calculateTravelTimes(filteredResults);
+                setShowMore(validResults.length > RESULTS_PER_PAGE);
+                calculateTravelTimes(validResults);
                 setIsSearching(false);
             });
         });
@@ -284,27 +273,24 @@ export function FindHelp() {
     };
 
     // Fixed function to get open status text
-    
+
 
     // Re-apply filters when filter state changes
     useEffect(() => {
-        if (places.length > 0) {
-            // Re-filter existing results when filters change
-            const filteredPlaces = places.filter(place => {
-                if ((place.rating || 0) < filters.minRating) return false;
-                if (filters.openNow) {
-                    const openStatus = isPlaceOpen(place);
-                    return openStatus === true;
-                }
-                return true;
-            });
+        if (allPlaces.length === 0) return;
 
-            // Only update if the filtered results are different
-            if (filteredPlaces.length !== places.length) {
-                setPlaces(filteredPlaces);
+        const filteredPlaces = allPlaces.filter(place => {
+            if ((place.rating || 0) < filters.minRating) return false;
+
+            if (filters.openNow) {
+                return isPlaceOpen(place) === true;
             }
-        }
-    }, [filters.openNow, filters.minRating]); // Only re-filter when these specific filters change
+
+            return true;
+        });
+
+        setPlaces(filteredPlaces);
+    }, [filters.openNow, filters.minRating, allPlaces]);
 
     const sortedPlaces = sortBy === 'rating'
         ? [...places].sort((a, b) => (b.rating || 0) - (a.rating || 0))

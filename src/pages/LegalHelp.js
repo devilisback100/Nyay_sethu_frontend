@@ -105,6 +105,7 @@ export function LegalHelp() {
         // Ensure userId is set before any API calls
         getOrCreateUserId();
         fetchChats();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [BACKEND_URL, navigate]);
 
     useEffect(() => {
@@ -394,6 +395,7 @@ export function LegalHelp() {
                 fetchMessages(firstChat.chat_id);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chatsLoaded, chats, chatId, isGuest]);
     const fetchMessages = async (chatId) => {
         const token = localStorage.getItem('token');

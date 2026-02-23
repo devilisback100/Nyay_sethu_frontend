@@ -13,14 +13,18 @@ export function Home() {
 
     const [stats, setStats] = useState([]);
 
-    const sectionRefs = {
-        hero: useRef(null),
-        features: useRef(null),
-        testimonials: useRef(null),
-        cta: useRef(null)
-    };
+    const heroRef = useRef(null);
+    const featuresRef = useRef(null);
+    const testimonialsRef = useRef(null);
+    const ctaRef = useRef(null);
 
     useEffect(() => {
+        const sectionRefs = {
+            hero: heroRef,
+            features: featuresRef,
+            testimonials: testimonialsRef,
+            cta: ctaRef
+        };
         const observerOptions = {
             threshold: 0.2,
             rootMargin: '0px'
@@ -111,7 +115,7 @@ export function Home() {
     return (
         <div className="home">
             <section
-                ref={sectionRefs.hero}
+                ref={heroRef}
                 className={`hero ${isVisible.hero ? 'visible' : ''}`}
             >
                 <div className="hero-content">
@@ -143,7 +147,7 @@ export function Home() {
             </section>
 
             <section
-                ref={sectionRefs.features}
+                ref={featuresRef}
                 className={`features ${isVisible.features ? 'visible' : ''}`}
             >
                 <h2>How We <span className="highlight">Help</span></h2>
@@ -178,7 +182,7 @@ export function Home() {
             </section>
 
             <section
-                ref={sectionRefs.testimonials}
+                ref={testimonialsRef}
                 className={`testimonials ${isVisible.testimonials ? 'visible' : ''}`}
             >
                 <div className="testimonials-header">
@@ -216,7 +220,7 @@ export function Home() {
             </section>
 
             <section
-                ref={sectionRefs.cta}
+                ref={ctaRef}
                 className={`cta ${isVisible.cta ? 'visible' : ''}`}
             >
                 <div className="cta-content">
