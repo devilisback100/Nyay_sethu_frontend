@@ -266,7 +266,7 @@
     background-color: var(--surface);
     transition: var(--transition);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .case-history::before,
@@ -281,6 +281,7 @@
     height: 100%;
     background: var(--primary);
     opacity: 0.5;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
 }
 
 .case-history h2,

@@ -344,7 +344,7 @@ export function RegularUserProfile({ profile, appointments, onProfileUpdate }) {
                                         }
                                     }}
                                 >
-                                    <div className="appointment-info">
+                                    <div className="Legal-appointment-info">
                                         <strong>{appt.appointment_date}</strong> - {appt.status}
                                         {appt.status === 'Accepted' && (
                                             <span style={{ marginLeft: '8px', color: '#007bff' }}>→ Chat</span>
