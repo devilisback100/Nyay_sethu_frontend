@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaUser, FaEnvelope, FaLock, FaMapMarkerAlt } from 'react-icons/fa';
 import { TermsAndConditions } from '../../components/TermsAndConditions';
 
@@ -18,7 +18,7 @@ export function UserSignup({ onBack }) {
     const [success, setSuccess] = useState('');
     const [isTermsOpen, setIsTermsOpen] = useState(false);
     const [otpRequested, setOtpRequested] = useState(false);
-    const [otpSent, setOtpSent] = useState(false);
+    const [, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
     const [otpVerified, setOtpVerified] = useState(false);
     const [otpError, setOtpError] = useState('');
@@ -26,7 +26,6 @@ export function UserSignup({ onBack }) {
     const [otpRequestCooldown, setOtpRequestCooldown] = useState(0);
     const [otpVerifyCooldown, setOtpVerifyCooldown] = useState(0);
     const [transferChats, setTransferChats] = useState(false);
-    const navigate = useNavigate();
     const location = useLocation();
     const guestId = location.state?.guestId;
 

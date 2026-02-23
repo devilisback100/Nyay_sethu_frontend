@@ -35,7 +35,7 @@ export function NyaySathiSignup({ onBack }) {
     const [isTermsOpen, setIsTermsOpen] = useState(false); // State to control the modal
     const [termsAccepted, setTermsAccepted] = useState(false); // State for checkbox
     const [otpRequested, setOtpRequested] = useState(false);
-    const [otpSent, setOtpSent] = useState(false);
+    const [, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
     const [otpVerified, setOtpVerified] = useState(false);
     const [otpError, setOtpError] = useState('');
@@ -467,7 +467,6 @@ export function NyaySathiSignup({ onBack }) {
             });
 
             if (response.ok) {
-                const data = await response.json();
 
                 // Now log the user in to get the token (similar to User signup)
                 const loginRes = await fetch(`${BACKEND_URL}/api/auth/login`, {

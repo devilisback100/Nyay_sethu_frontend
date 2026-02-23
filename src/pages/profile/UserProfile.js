@@ -88,7 +88,6 @@ export function UserProfile() {
     const fetchProfileAndAppointments = async () => {
         try {
             const token = localStorage.getItem('token');
-            const storedType = localStorage.getItem('userType');
             if (!token || !internalUserType) {
                 setError('Authentication required. Please login.');
                 localStorage.clear();

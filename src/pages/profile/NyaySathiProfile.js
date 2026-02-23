@@ -94,25 +94,22 @@ export function NyaySathiProfile({ profile, appointments, onProfileUpdate }) {
 
     useEffect(() => {
         const loadUserDetails = async () => {
-            if (!Array.isArray(appointments) || appointments.length === 0) return;
+            if (!appointments?.length) return;
 
-            const userIds = new Set(appointments.map((app) => app.user_id));
-            const newUserMap = { ...userMap };
-            let hasNewUsers = false;
+            setUserMap(async (prevUserMap) => {
+                const newUserMap = { ...prevUserMap };
 
-            for (const userId of userIds) {
-                if (!newUserMap[userId]) {
-                    const userDetails = await fetchUserDetails(userId);
-                    if (userDetails) {
-                        newUserMap[userId] = userDetails;
-                        hasNewUsers = true;
+                for (const app of appointments) {
+                    if (!newUserMap[app.user_id]) {
+                        const details = await fetchUserDetails(app.user_id);
+                        if (details) {
+                            newUserMap[app.user_id] = details;
+                        }
                     }
                 }
-            }
 
-            if (hasNewUsers) {
-                setUserMap(newUserMap);
-            }
+                return newUserMap;
+            });
         };
 
         loadUserDetails();
