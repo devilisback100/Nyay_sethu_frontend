@@ -11,7 +11,7 @@ export function Auth() {
     const [loginData, setLoginData] = useState({ email: '', password: '' });
     const [showRecovery, setShowRecovery] = useState(false);
     const [recoveryEmail, setRecoveryEmail] = useState('');
-    const [recoveryOtpSent, setRecoveryOtpSent] = useState(false);
+    const [, setRecoveryOtpSent] = useState(false);
     const [recoveryOtp, setRecoveryOtp] = useState('');
     const [recoveryNewPassword, setRecoveryNewPassword] = useState('');
     const [recoveryStep, setRecoveryStep] = useState(1);
@@ -87,7 +87,6 @@ export function Auth() {
                 triggerAuthStateChange();
                 navigate('/legal-help');
             } else {
-                const err = await response.text();
                 alert('Invalid email or password.');
             }
         } catch (error) {

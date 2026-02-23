@@ -284,13 +284,7 @@ export function FindHelp() {
     };
 
     // Fixed function to get open status text
-    const getOpenStatusText = (place) => {
-        const openStatus = isPlaceOpen(place);
-
-        if (openStatus === true) return '✅ Open Now';
-        if (openStatus === false) return '❌ Closed';
-        return 'ℹ️ Hours not available';
-    };
+    
 
     // Re-apply filters when filter state changes
     useEffect(() => {
