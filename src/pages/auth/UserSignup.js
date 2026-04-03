@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import {  useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaUser, FaEnvelope, FaLock, FaMapMarkerAlt } from 'react-icons/fa';
 import { TermsAndConditions } from '../../components/TermsAndConditions';
 
@@ -275,24 +275,27 @@ export function UserSignup({ onBack }) {
                             </button>
                         )}
                         {otpRequested && !otpVerified && (
-                            <div className="otp-verification">
-                                <input
-                                    type="text"
-                                    placeholder="Enter OTP"
-                                    value={otp}
-                                    onChange={(e) => setOtp(e.target.value)}
-                                    maxLength={6}
-                                />
-                                <button
-                                    type="button"
-                                    className="verify-otp-button"
-                                    onClick={verifyOtp}
-                                    disabled={otpVerifyCooldown > 0}
-                                >
-                                    {otpVerifyCooldown > 0 ? 'Verifying...' : 'Verify OTP'}
-                                </button>
-                                {otpError && <span className="error-message">{otpError}</span>}
-                            </div>
+                            <>
+                                <div className="otp-info-message">We’ve sent your verification code.<br />If you don’t see it, check your Spam folder or resend the code.</div>
+                                <div className="otp-verification">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter OTP"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        maxLength={6}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="verify-otp-button"
+                                        onClick={verifyOtp}
+                                        disabled={otpVerifyCooldown > 0}
+                                    >
+                                        {otpVerifyCooldown > 0 ? 'Verifying...' : 'Verify OTP'}
+                                    </button>
+                                    {otpError && <span className="error-message">{otpError}</span>}
+                                </div>
+                            </>
                         )}
                         {otpVerified && <span className="success-message">Email verified!</span>}
                     </div>
